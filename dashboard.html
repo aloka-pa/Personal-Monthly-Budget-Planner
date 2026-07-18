@@ -27,8 +27,23 @@
   </nav>
 
   <main class="container pb-5">
-    <h1 class="h4 mb-4">Month-over-Month Dashboard</h1>
-    <p class="text-muted">Comparison cards and Chart.js chart coming in Stage 8.</p>
+    <h1 class="h4 mb-4">Budget History Dashboard</h1>
+
+    <div id="dashboardAlert" class="alert d-none" role="alert"></div>
+
+    <!-- CATEGORY SPENDING OVER TIME (LINE CHART) -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h2 class="h6 text-muted mb-3">Spending by Category Over Time</h2>
+        <canvas id="categoryTrendChart" height="100"></canvas>
+      </div>
+    </div>
+
+    <!-- MONTHLY TILES -->
+    <h2 class="h6 text-muted mb-3">Monthly Summary</h2>
+    <div class="row g-2 mb-4" id="monthTileGrid">
+      <div class="col-12 text-center text-muted">Loading months...</div>
+    </div>
   </main>
 
   <!-- Bootstrap 5 JS bundle (CDN) -->
