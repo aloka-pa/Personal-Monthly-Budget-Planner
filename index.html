@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Personal Monthly Budget Planner</title>
+  <title>Login - Wallet Check</title>
+
+  <!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
+  <script>
+    (function () {
+      var theme = localStorage.getItem("wc-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
 
   <!-- Bootstrap 5 CSS (CDN) -->
   <link
@@ -16,10 +24,12 @@
 </head>
 <body>
 
+  <button type="button" class="btn theme-toggle-standalone" data-theme-toggle title="Toggle dark/light mode">🌙</button>
+
   <main class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
     <div class="card shadow-sm" style="width: 100%; max-width: 420px;">
       <div class="card-body p-4">
-        <h1 class="h4 text-center mb-4">Personal Monthly Budget Planner</h1>
+        <h1 class="h4 text-center mb-4">Wallet Check</h1>
 
         <!-- Shared alert box for errors/success messages -->
         <div id="authAlert" class="alert d-none" role="alert"></div>
@@ -72,5 +82,6 @@
   <script src="config.js"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/theme.js"></script>
 </body>
 </html>

@@ -1,12 +1,296 @@
-/* ============================================================
-   Personal Monthly Budget Planner - custom styles
-   Keep this minimal; Bootstrap 5 handles most of the layout.
-   ============================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap");
+
+:root {
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Poppins", var(--font-body);
+
+  /* Apple system colors (light) */
+  --color-blue: #00b7c2;
+  --color-green: #a7d82e;
+  --color-yellow: #FF9D4D;
+  --color-red: #C62828;
+  --color-gray: #8e8e93;
+
+  --color-blue-bg: rgba(0, 122, 255, 0.1);
+  --color-green-bg: rgba(52, 199, 89, 0.12);
+  --color-yellow-bg: rgba(255, 149, 0, 0.15);
+  --color-red-bg: rgba(255, 59, 48, 0.12);
+
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --surface-2: #f2f2f7;
+  --text: #1c1c1e;
+  --text-muted: #6e6e73;
+  --border: rgba(60, 60, 67, 0.15);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 6px rgba(0, 0, 0, 0.05);
+  --input-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  /* Apple system colors (dark) - slightly brighter for contrast */
+  --color-blue: #00b7c2;
+  --color-green: #a7d82e;
+  --color-yellow: #FF9D4D;
+  --color-red: #C62828;
+  --color-gray: #98989d;
+
+  --color-blue-bg: rgba(10, 132, 255, 0.18);
+  --color-green-bg: rgba(48, 209, 88, 0.18);
+  --color-yellow-bg: rgba(255, 214, 10, 0.18);
+  --color-red-bg: rgba(255, 69, 58, 0.18);
+
+  /* Charcoal, not pure black */
+  --bg: #1c1c1e;
+  --surface: #2c2c2e;
+  --surface-2: #3a3a3c;
+  --text: #f5f5f7;
+  --text-muted: #98989d;
+  --border: rgba(255, 255, 255, 0.09);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.35);
+  --input-bg: #3a3a3c;
+}
+
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+html,
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
 
 body {
-  background-color: #f5f6fa;
+  font-family: var(--font-body);
 }
 
+a {
+  color: var(--color-blue);
+}
+
+/* ------------------------------------------------------------
+   Navbar
+   ------------------------------------------------------------ */
 .app-navbar {
   margin-bottom: 1.5rem;
+  background-color: rgba(28, 28, 30, 0.72) !important;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
+
+.app-navbar .navbar-brand {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.theme-toggle-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: transparent;
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.theme-toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Standalone toggle for pages with no navbar (index.html) */
+.theme-toggle-standalone {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1050;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+}
+
+/* ------------------------------------------------------------
+   Headings
+   ------------------------------------------------------------ */
+h1,
+h2,
+h3,
+.navbar-brand {
+  font-family: var(--font-heading);
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   Cards - rounded, soft-shadow, Apple-style surfaces
+   ------------------------------------------------------------ */
+.card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+  color: var(--text);
+}
+
+.card .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* ------------------------------------------------------------
+   Buttons - rounded, Apple accent colors
+   ------------------------------------------------------------ */
+.btn {
+  border-radius: 0.75rem;
+  font-weight: 500;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--color-blue);
+  --bs-btn-border-color: var(--color-blue);
+  --bs-btn-hover-bg: var(--color-blue);
+  --bs-btn-hover-border-color: var(--color-blue);
+  --bs-btn-active-bg: var(--color-blue);
+  --bs-btn-active-border-color: var(--color-blue);
+  --bs-btn-disabled-bg: var(--color-blue);
+  --bs-btn-disabled-border-color: var(--color-blue);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  filter: brightness(0.92);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--color-blue);
+  --bs-btn-border-color: var(--color-blue);
+  --bs-btn-hover-bg: var(--color-blue);
+  --bs-btn-hover-border-color: var(--color-blue);
+}
+
+.btn-outline-danger {
+  --bs-btn-color: var(--color-red);
+  --bs-btn-border-color: var(--color-red);
+  --bs-btn-hover-bg: var(--color-red);
+  --bs-btn-hover-border-color: var(--color-red);
+}
+
+.btn-outline-secondary,
+.btn-secondary {
+  --bs-btn-color: var(--text);
+  --bs-btn-border-color: var(--border);
+  --bs-btn-hover-color: var(--text);
+  --bs-btn-hover-bg: var(--surface-2);
+  --bs-btn-hover-border-color: var(--border);
+  --bs-btn-bg: transparent;
+}
+
+/* ------------------------------------------------------------
+   Status colors - balance tiles, dashboard tiles, badges
+   ------------------------------------------------------------ */
+.bg-success {
+  background-color: var(--color-green) !important;
+}
+.bg-warning {
+  background-color: var(--color-yellow) !important;
+}
+.bg-danger {
+  background-color: var(--color-red) !important;
+}
+.badge.bg-info {
+  background-color: var(--color-blue) !important;
+  color: #fff !important;
+}
+
+/* ------------------------------------------------------------
+   Alerts
+   ------------------------------------------------------------ */
+.alert-danger {
+  background-color: var(--color-red-bg);
+  color: var(--color-red);
+  border: 1px solid transparent;
+}
+.alert-success {
+  background-color: var(--color-green-bg);
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+.alert-warning {
+  background-color: var(--color-yellow-bg);
+  color: var(--color-yellow);
+  border: 1px solid transparent;
+}
+
+/* ------------------------------------------------------------
+   Forms
+   ------------------------------------------------------------ */
+.form-control,
+.form-select,
+.input-group-text {
+  background-color: var(--input-bg);
+  border-color: var(--border);
+  color: var(--text);
+  border-radius: 0.6rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--input-bg);
+  color: var(--text);
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 0.2rem var(--color-blue-bg);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------ */
+.table {
+  color: var(--text);
+}
+.table > :not(caption) > * > * {
+  background-color: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.table-hover > tbody > tr:hover > * {
+  background-color: var(--surface-2);
+}
+
+/* ------------------------------------------------------------
+   Modals
+   ------------------------------------------------------------ */
+.modal-content {
+  background-color: var(--surface);
+  color: var(--text);
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+}
+.modal-header,
+.modal-footer {
+  border-color: var(--border);
+}
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(1.6);
+}
+

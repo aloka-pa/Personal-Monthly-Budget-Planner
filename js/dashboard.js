@@ -12,14 +12,31 @@
 //   2. A grid of small tiles - one per month - each showing that
 //      month's income/expenses/balance (color-coded same as the
 //      main app page).
+//
+// Both automatically "grow" over time: as soon as new months have
+// data, they show up here without any code changes.
 // ============================================================
 
-// A palette of distinct colors to cycle through for each category
-// line on the chart.
 const CATEGORY_LINE_COLORS = [
-  "#0d6efd", "#dc3545", "#198754", "#fd7e14", "#6f42c1",
-  "#20c997", "#d63384", "#0dcaf0", "#ffc107", "#6c757d",
+  "#7692e4", // blue
+  "#ff6699", // red
+  "#94dd4d", // green
+  "#ff9f0a", // orange
+  "#a099ff", // purple
+  "#64d2ff", // cyan
+  "#8c7676", // pink
+  "#ddb6c6", // yellow
+  "#5e5ce6", // indigo
+  "#8e8e93", // gray
 ];
+
+// Chart.js text/gridline colors that read well on both the light
+// and dark theme backgrounds.
+if (typeof Chart !== "undefined") {
+  Chart.defaults.color = "#8e8e93";
+  Chart.defaults.borderColor = "rgba(142, 142, 147, 0.25)";
+}
+
 
 // Returns a "YYYY-MM" key for a given Date, in local time.
 function getMonthKey(date) {
@@ -78,6 +95,7 @@ function showDashboardAlert(message, type = "danger") {
   if (!alertBox) return;
   alertBox.textContent = message;
   alertBox.className = `alert alert-${type}`;
+  window.autoHideAlert(alertBox);
 }
 
 // Same color-coding rule used everywhere else in the app:
@@ -159,7 +177,7 @@ async function loadDashboard() {
 
     const now = new Date();
 
-    // Figure out the earliest month has any data for. If the
+    // Figure out the earliest month we have any data for. If the
     // user has no data at all yet, just show the current month.
     const candidateDates = [];
     incomes.forEach((row) => candidateDates.push(new Date(`${row.month}T00:00:00`)));

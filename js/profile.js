@@ -61,6 +61,7 @@ function showProfileAlert(message, type = "danger") {
   if (!alertBox) return;
   alertBox.textContent = message;
   alertBox.className = `alert alert-${type}`;
+  window.autoHideAlert(alertBox);
 }
 
 function hideProfileAlert() {

@@ -55,6 +55,20 @@ async function guardPageWithSession() {
   }
 }
 
+// Shared helper: auto-hides a Bootstrap alert element after a delay.
+// The pending timeout is stashed on the element itself so showing
+// the same alert again (e.g. resubmitting a form) resets the timer
+// instead of hiding a newer message early. Exposed on `window` so
+// every show*Alert() function across the app (profile.js, income.js,
+// expenses.js, dashboard.js) can reuse it.
+window.autoHideAlert = function autoHideAlert(alertBox, delay = 2000) {
+  if (!alertBox) return;
+  if (alertBox._autoHideTimeout) clearTimeout(alertBox._autoHideTimeout);
+  alertBox._autoHideTimeout = setTimeout(() => {
+    alertBox.classList.add("d-none");
+  }, delay);
+};
+
 // Show a Bootstrap alert message inside #authAlert (only present
 // on index.html).
 function showAuthAlert(message, type = "danger") {
@@ -62,6 +76,7 @@ function showAuthAlert(message, type = "danger") {
   if (!alertBox) return;
   alertBox.textContent = message;
   alertBox.className = `alert alert-${type}`;
+  window.autoHideAlert(alertBox);
 }
 
 function hideAuthAlert() {
