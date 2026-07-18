@@ -1,7 +1,7 @@
 // ============================================================
 // expenses.js - categories loading, add/edit/delete expenses
 // Stage 5: load categories (predefined + custom) and add expenses.
-// Stages 6-7 will add edit/delete and the expense list.
+// Stage 6: expense list for the current month + edit/delete.
 // ============================================================
 //
 // CATEGORIES: a category with `user_id = null` is a shared,
@@ -11,10 +11,16 @@
 // `.or()` filter and merge them into one dropdown.
 // ============================================================
 
-// Loads predefined + the user's custom categories into the
-// #expenseCategory <select>, optionally selecting a given
-// category id afterwards (used after adding a new category).
-async function loadCategories(selectCategoryId = null) {
+// In-memory cache of the currently-loaded month's expenses,
+// keyed by id, so the edit modal can be pre-filled instantly
+// without an extra round trip to Supabase.
+const expenseCache = new Map();
+
+// Loads predefined + the user's custom categories into the given
+// <select> element (used for both the add-expense form and the
+// edit-expense modal), optionally selecting a given category id
+// afterwards.
+async function loadCategories(selectElementId = "expenseCategory", selectCategoryId = null) {
     const {
         data: { user },
     } = await supabaseClient.auth.getUser();
@@ -31,7 +37,8 @@ async function loadCategories(selectCategoryId = null) {
         return;
     }
 
-    const select = document.getElementById("expenseCategory");
+    const select = document.getElementById(selectElementId);
+    if (!select) return;
     select.innerHTML = "";
 
     data.forEach((category) => {
@@ -91,7 +98,7 @@ function setupAddCategory() {
         }
 
         input.value = "";
-        await loadCategories(data.id);
+        await loadCategories("expenseCategory", data.id);
     });
 }
 
@@ -158,15 +165,249 @@ function setupExpenseForm() {
         showExpenseAlert("Expense added!", "success");
         form.reset();
         setDefaultExpenseDatetime();
+        await loadExpenses();
     });
+}
+
+// ============================================================
+// EXPENSE LIST (Stage 6)
+// ============================================================
+
+// Returns { start, end } Date objects for the current calendar
+// month in local time - start is the 1st at 00:00, end is the
+// 1st of NEXT month at 00:00 (used as an exclusive upper bound).
+function getCurrentMonthDateRange() {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return { start, end };
+}
+
+function showExpenseListAlert(message, type = "danger") {
+    const alertBox = document.getElementById("expenseListAlert");
+    if (!alertBox) return;
+    alertBox.textContent = message;
+    alertBox.className = `alert alert-${type}`;
+}
+
+// Builds one <tr> for an expense row.
+function buildExpenseRow(expense) {
+    const tr = document.createElement("tr");
+
+    const dateCell = document.createElement("td");
+    dateCell.textContent = new Date(expense.expense_datetime).toLocaleString();
+
+    const categoryCell = document.createElement("td");
+    categoryCell.textContent = expense.categories ? expense.categories.name : "-";
+
+    const amountCell = document.createElement("td");
+    amountCell.textContent = Number(expense.amount).toFixed(2);
+
+    const descriptionCell = document.createElement("td");
+    descriptionCell.textContent = expense.description || "-";
+
+    const recurringCell = document.createElement("td");
+    if (expense.is_recurring) {
+        const badge = document.createElement("span");
+        badge.className = "badge bg-info text-dark";
+        badge.textContent = "Recurring";
+        recurringCell.appendChild(badge);
+    }
+
+    const actionsCell = document.createElement("td");
+    actionsCell.className = "text-end";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn btn-sm btn-outline-secondary me-2";
+    editBtn.textContent = "Edit";
+    editBtn.addEventListener("click", () => openEditExpenseModal(expense.id));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "btn btn-sm btn-outline-danger";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", () => deleteExpense(expense.id));
+
+    actionsCell.appendChild(editBtn);
+    actionsCell.appendChild(deleteBtn);
+
+    tr.appendChild(dateCell);
+    tr.appendChild(categoryCell);
+    tr.appendChild(amountCell);
+    tr.appendChild(descriptionCell);
+    tr.appendChild(recurringCell);
+    tr.appendChild(actionsCell);
+
+    return tr;
+}
+
+// Fetches the current month's expenses for the logged-in user
+// (joining the category name) and renders them into the table.
+async function loadExpenses() {
+    const tbody = document.getElementById("expenseListBody");
+    if (!tbody) return;
+
+    const {
+        data: { user },
+    } = await supabaseClient.auth.getUser();
+    if (!user) return;
+
+    const { start, end } = getCurrentMonthDateRange();
+
+    const { data, error } = await supabaseClient
+        .from("expenses")
+        .select("id, amount, expense_datetime, description, is_recurring, category_id, categories(name)")
+        .eq("user_id", user.id)
+        .gte("expense_datetime", start.toISOString())
+        .lt("expense_datetime", end.toISOString())
+        .order("expense_datetime", { ascending: false });
+
+    if (error) {
+        showExpenseListAlert(error.message);
+        return;
+    }
+
+    expenseCache.clear();
+    data.forEach((expense) => expenseCache.set(expense.id, expense));
+
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.innerHTML =
+            '<td colspan="6" class="text-center text-muted">No expenses recorded this month yet.</td>';
+        tbody.appendChild(emptyRow);
+        return;
+    }
+
+    data.forEach((expense) => tbody.appendChild(buildExpenseRow(expense)));
+}
+
+// Formats a Date as "YYYY-MM-DDTHH:mm" for a datetime-local input.
+function toDatetimeLocalValue(date) {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 16);
+}
+
+function showEditExpenseAlert(message, type = "danger") {
+    const alertBox = document.getElementById("editExpenseAlert");
+    if (!alertBox) return;
+    alertBox.textContent = message;
+    alertBox.className = `alert alert-${type}`;
+}
+
+function hideEditExpenseAlert() {
+    const alertBox = document.getElementById("editExpenseAlert");
+    if (!alertBox) return;
+    alertBox.classList.add("d-none");
+}
+
+// Opens the edit modal pre-filled with the given expense's data.
+async function openEditExpenseModal(expenseId) {
+    const expense = expenseCache.get(expenseId);
+    if (!expense) return;
+
+    hideEditExpenseAlert();
+
+    document.getElementById("editExpenseId").value = expense.id;
+    document.getElementById("editExpenseAmount").value = expense.amount;
+    document.getElementById("editExpenseDatetime").value = toDatetimeLocalValue(
+        new Date(expense.expense_datetime)
+    );
+    document.getElementById("editExpenseDescription").value = expense.description || "";
+    document.getElementById("editExpenseRecurring").checked = expense.is_recurring;
+
+    await loadCategories("editExpenseCategory", expense.category_id);
+
+    const modal = new bootstrap.Modal(document.getElementById("editExpenseModal"));
+    modal.show();
+}
+
+// Wires up the edit expense form submission.
+function setupEditExpenseForm() {
+    const form = document.getElementById("editExpenseForm");
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        hideEditExpenseAlert();
+
+        const {
+            data: { user },
+        } = await supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const id = document.getElementById("editExpenseId").value;
+        const amount = parseFloat(document.getElementById("editExpenseAmount").value);
+        const categoryId = document.getElementById("editExpenseCategory").value;
+        const datetimeValue = document.getElementById("editExpenseDatetime").value;
+        const description = document.getElementById("editExpenseDescription").value.trim();
+        const isRecurring = document.getElementById("editExpenseRecurring").checked;
+
+        if (isNaN(amount) || amount <= 0) {
+            showEditExpenseAlert("Amount must be greater than 0.");
+            return;
+        }
+
+        const { error } = await supabaseClient
+            .from("expenses")
+            .update({
+                category_id: categoryId,
+                amount,
+                expense_datetime: new Date(datetimeValue).toISOString(),
+                description: description || null,
+                is_recurring: isRecurring,
+            })
+            .eq("id", id)
+            .eq("user_id", user.id);
+
+        if (error) {
+            showEditExpenseAlert(error.message);
+            return;
+        }
+
+        const modalEl = document.getElementById("editExpenseModal");
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
+
+        await loadExpenses();
+    });
+}
+
+// Deletes an expense after a confirmation prompt.
+async function deleteExpense(expenseId) {
+    const confirmed = window.confirm("Delete this expense? This cannot be undone.");
+    if (!confirmed) return;
+
+    const {
+        data: { user },
+    } = await supabaseClient.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabaseClient
+        .from("expenses")
+        .delete()
+        .eq("id", expenseId)
+        .eq("user_id", user.id);
+
+    if (error) {
+        showExpenseListAlert(error.message);
+        return;
+    }
+
+    await loadExpenses();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     // Only run on app.html, where the expense form exists.
     if (!document.getElementById("expenseForm")) return;
 
-    loadCategories();
+    loadCategories("expenseCategory");
     setupAddCategory();
     setupExpenseForm();
     setDefaultExpenseDatetime();
+
+    loadExpenses();
+    setupEditExpenseForm();
 });
