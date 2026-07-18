@@ -46,7 +46,102 @@
             </div>
         </div>
 
-        <p class="text-muted">Income, expense form/list and balance coming in Stages 4-7.</p>
+        <!-- MONTHLY INCOME -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 id="incomeCardTitle" class="h6 text-muted mb-3">Income for this month</h2>
+                <div id="incomeAlert" class="alert d-none" role="alert"></div>
+                <form id="incomeForm" class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <span class="input-group-text">LKR</span>
+                    </div>
+                    <div class="col-auto">
+                        <input type="number"
+                               class="form-control"
+                               id="incomeAmount"
+                               min="0"
+                               step="0.01"
+                               placeholder="Enter amount"
+                               required />
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Save Income</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <p class="text-muted">Expense list and balance coming in Stages 6-7.</p>
+
+        <!-- ADD EXPENSE -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h6 text-muted mb-3">Add Expense</h2>
+                <div id="expenseAlert" class="alert d-none" role="alert"></div>
+
+                <form id="expenseForm" class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label for="expenseAmount" class="form-label">Amount (LKR)</label>
+                        <input type="number"
+                               class="form-control"
+                               id="expenseAmount"
+                               min="0.01"
+                               step="0.01"
+                               required />
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="expenseCategory" class="form-label">Category</label>
+                        <select class="form-select" id="expenseCategory" required>
+                            <option value="" disabled selected>Loading categories...</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="expenseDatetime" class="form-label">Date &amp; Time</label>
+                        <input type="datetime-local"
+                               class="form-control"
+                               id="expenseDatetime"
+                               required />
+                    </div>
+
+                    <!-- Inline "add custom category" -->
+                    <div class="col-12">
+                        <div class="input-group input-group-sm" style="max-width: 400px;">
+                            <input type="text"
+                                   class="form-control"
+                                   id="newCategoryName"
+                                   placeholder="Add a custom category..."
+                                   maxlength="100" />
+                            <button class="btn btn-outline-secondary" type="button" id="addCategoryBtn">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="expenseDescription" class="form-label">Description (optional)</label>
+                        <textarea class="form-control"
+                                  id="expenseDescription"
+                                  rows="2"
+                                  maxlength="500"></textarea>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="expenseRecurring" />
+                            <label class="form-check-label" for="expenseRecurring">
+                                This is a recurring expense
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Add Expense</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 
     <!-- EDIT PROFILE MODAL -->
