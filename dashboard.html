@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Personal Monthly Budget Planner</title>
+
+  <!-- Bootstrap 5 CSS (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Custom styles -->
+  <link href="css/styles.css" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary app-navbar">
+    <div class="container">
+      <span class="navbar-brand">Budget Planner</span>
+      <div class="d-flex">
+        <a href="app.html" class="btn btn-outline-light btn-sm me-2">Back to App</a>
+        <button id="logoutBtn" class="btn btn-light btn-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container pb-5">
+    <h1 class="h4 mb-4">Month-over-Month Dashboard</h1>
+    <p class="text-muted">Comparison cards and Chart.js chart coming in Stage 8.</p>
+  </main>
+
+  <!-- Bootstrap 5 JS bundle (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+
+  <!-- Supabase JS client (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- App config + client + logic -->
+  <script src="config.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

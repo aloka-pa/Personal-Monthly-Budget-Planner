@@ -1,0 +1,12 @@
+/* ============================================================
+   Personal Monthly Budget Planner - custom styles
+   Keep this minimal; Bootstrap 5 handles most of the layout.
+   ============================================================ */
+
+body {
+  background-color: #f5f6fa;
+}
+
+.app-navbar {
+  margin-bottom: 1.5rem;
+}
