@@ -1,8 +1,8 @@
 # Wallet Check
 
-A personal monthly budget planner built with plain HTML, CSS, and JavaScript. It uses Supabase for authentication and data storage, and Chart.js for spending trends — designed for simple, real-world monthly money tracking with month-by-month navigation and a dark mode default.
+A personal monthly budget planner built with plain HTML, CSS, and JavaScript. It uses Supabase for authentication and data storage, and Chart.js for spending trends - designed for simple, real-world monthly money tracking with month-by-month navigation and a dark mode default.
 
-**Live app:** https://aloka-pa.github.io/Personal-Monthly-Budget-Planner/
+📊🚀 **Live app:** https://aloka-pa.github.io/Personal-Monthly-Budget-Planner/
 
 # Table of Contents
 
