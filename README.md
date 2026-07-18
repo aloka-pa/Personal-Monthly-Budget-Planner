@@ -166,17 +166,13 @@ Unique constraint on (`user_id`, `month`)
 
 ## 9. Troubleshooting
 
-**Blank data after login**
-Check that the session is active, RLS policies allow select/write for authenticated users, and table/column names match the schema above.
+**Blank data after login** - Check that the session is active, RLS policies allow select/write for authenticated users, and table/column names match the schema above.
 
-**Auth redirects behaving oddly**
-Confirm the app is served from the correct root path, then clear local storage and log in again.
+**Auth redirects behaving oddly** - Confirm the app is served from the correct root path, then clear local storage and log in again.
 
-**Dashboard chart not rendering**
-Check your internet connection for CDN scripts, and confirm Chart.js loads before `dashboard.js`.
+**Dashboard chart not rendering** - Check your internet connection for CDN scripts, and confirm Chart.js loads before `dashboard.js`.
 
-**Theme not persisting**
-Verify local storage is enabled in your browser and that `theme.js` is loaded on every page.
+**Theme not persisting** - Verify local storage is enabled in your browser and that `theme.js` is loaded on every page.
 
 ## 10. Roadmap
 
