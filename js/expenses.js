@@ -154,6 +154,7 @@ function setupExpenseForm() {
       category_id: categoryId,
       amount,
       expense_datetime: new Date(datetimeValue).toISOString(),
+      budget_month: window.getViewedMonthFirstDay(),
       description: description || null,
       is_recurring: isRecurring,
     });
@@ -251,14 +252,13 @@ window.loadExpenses = async function loadExpenses() {
   } = await supabaseClient.auth.getUser();
   if (!user) return;
 
-  const { start, end } = window.getViewedMonthRange();
+  const viewedMonth = window.getViewedMonthFirstDay();
 
   const { data, error } = await supabaseClient
     .from("expenses")
     .select("id, amount, expense_datetime, description, is_recurring, category_id, categories(name)")
     .eq("user_id", user.id)
-    .gte("expense_datetime", start.toISOString())
-    .lt("expense_datetime", end.toISOString())
+    .eq("budget_month", viewedMonth)
     .order("expense_datetime", { ascending: false });
 
   if (error) {
