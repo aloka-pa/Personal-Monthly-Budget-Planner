@@ -82,7 +82,7 @@ async function fetchAllIncomes(userId) {
 async function fetchAllExpenses(userId) {
   const { data, error } = await supabaseClient
     .from("expenses")
-    .select("amount, expense_datetime, categories(name)")
+    .select("amount, expense_datetime, budget_month, categories(name)")
     .eq("user_id", userId)
     .order("expense_datetime", { ascending: true });
 
@@ -181,7 +181,7 @@ async function loadDashboard() {
     // user has no data at all yet, just show the current month.
     const candidateDates = [];
     incomes.forEach((row) => candidateDates.push(new Date(`${row.month}T00:00:00`)));
-    expenses.forEach((row) => candidateDates.push(new Date(row.expense_datetime)));
+    expenses.forEach((row) => candidateDates.push(new Date(`${row.budget_month}T00:00:00`)));
 
     const earliestDate =
       candidateDates.length > 0
@@ -203,7 +203,7 @@ async function loadDashboard() {
     const categoryNamesSet = new Set();
 
     expenses.forEach((expense) => {
-      const key = getMonthKey(new Date(expense.expense_datetime));
+      const key = getMonthKey(new Date(`${expense.budget_month}T00:00:00`));
       const amount = Number(expense.amount);
       const categoryName = expense.categories ? expense.categories.name : "Uncategorized";
 
