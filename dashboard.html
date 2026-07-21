@@ -25,17 +25,19 @@
 <body>
 
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary app-navbar">
-    <div class="container">
+    <div class="container-fluid app-shell">
       <span class="navbar-brand">Wallet Check</span>
       <div class="d-flex align-items-center">
         <button type="button" class="btn theme-toggle-btn me-2" data-theme-toggle title="Toggle dark/light mode">🌙</button>
-        <a href="app.html" class="btn btn-outline-light btn-sm me-2">Back to App</a>
+        <a href="app.html" class="btn btn-outline-light btn-sm me-2">Home</a>
+        <a href="budgets.html" class="btn btn-outline-light btn-sm me-2">Budgets</a>
+        <a href="dashboard.html" class="btn btn-light btn-sm me-2">Dashboard</a>
         <button id="logoutBtn" class="btn btn-light btn-sm">Logout</button>
       </div>
     </div>
   </nav>
 
-  <main class="container pb-5">
+  <main class="container-fluid app-shell pb-5">
     <h1 class="h4 mb-4">Budget History Dashboard</h1>
 
     <div id="dashboardAlert" class="alert d-none" role="alert"></div>
