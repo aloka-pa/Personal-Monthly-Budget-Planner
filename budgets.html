@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budgets - Wallet Check</title>
+
+  <script>
+    (function () {
+      var theme = localStorage.getItem("wc-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <link href="css/styles.css" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary app-navbar">
+    <div class="container-fluid app-shell">
+      <span class="navbar-brand">Wallet Check</span>
+      <div class="d-flex align-items-center">
+        <button type="button" class="btn theme-toggle-btn me-2" data-theme-toggle title="Toggle dark/light mode">🌙</button>
+        <a href="app.html" class="btn btn-outline-light btn-sm me-2">Home</a>
+        <a href="budgets.html" class="btn btn-light btn-sm me-2">Budgets</a>
+        <a href="dashboard.html" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+        <button id="logoutBtn" class="btn btn-light btn-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid app-shell pb-5">
+    <section class="mb-4">
+      <h1 class="h4 mb-2">Monthly Category Budgets</h1>
+      <p class="text-muted mb-0">Manage how much you plan to spend in each category for the selected month.</p>
+    </section>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="prevMonthBtn">&laquo; Prev</button>
+      <h2 class="h5 mb-0" id="viewedMonthLabel">Loading...</h2>
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="nextMonthBtn">Next &raquo;</button>
+    </div>
+
+    <div id="budgetsAlert" class="alert d-none" role="alert"></div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h2 class="h6 text-uppercase text-muted mb-2">Overall Budget</h2>
+            <p class="h4 mb-0" id="overallBudgetAmount">LKR 0.00</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h2 class="h6 text-uppercase text-muted mb-2">Total Spent</h2>
+            <p class="h4 mb-0" id="totalSpentAmount">LKR 0.00</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100" id="remainingBudgetCard">
+          <div class="card-body text-center">
+            <h2 class="h6 text-uppercase mb-2">Remaining Budget</h2>
+            <p class="h4 mb-0" id="remainingBudgetAmount">LKR 0.00</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center">
+            <h2 class="h6 text-uppercase text-muted mb-2">Budget Usage %</h2>
+            <p class="h4 mb-0" id="budgetUsagePercent">0%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+          <h2 class="h6 text-muted mb-0">Category Budgets</h2>
+          <div class="w-100 w-lg-auto" style="max-width: 360px;">
+            <input
+              type="search"
+              class="form-control"
+              id="budgetSearchInput"
+              placeholder="Search categories..."
+              aria-label="Search categories"
+            />
+          </div>
+        </div>
+
+        <div class="table-responsive" id="budgetTableWrapper">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>
+                  <button class="sort-btn" type="button" data-sort="category">Category <span class="sort-indicator">↕</span></button>
+                </th>
+                <th>
+                  <button class="sort-btn" type="button" data-sort="budget">Monthly Budget <span class="sort-indicator">↕</span></button>
+                </th>
+                <th>
+                  <button class="sort-btn" type="button" data-sort="spent">Spent <span class="sort-indicator">↕</span></button>
+                </th>
+                <th>
+                  <button class="sort-btn" type="button" data-sort="remaining">Remaining <span class="sort-indicator">↕</span></button>
+                </th>
+                <th>
+                  <button class="sort-btn" type="button" data-sort="usage">Progress <span class="sort-indicator">↕</span></button>
+                </th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody id="budgetTableBody">
+              <tr>
+                <td colspan="6" class="text-center text-muted">Loading budgets...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="budgetEmptyState" class="empty-state d-none flex-column align-items-center justify-content-center text-center py-5">
+          <div class="empty-state-icon mb-2">&#128194;</div>
+          <h3 class="h6 mb-1">No categories found.</h3>
+          <p class="text-muted mb-0">Add categories from Home, then come back to set monthly budgets.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal fade" id="editBudgetModal" tabindex="-1" aria-labelledby="editBudgetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editBudgetForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editBudgetModalLabel">Edit Monthly Budget</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="editBudgetAlert" class="alert d-none" role="alert"></div>
+            <input type="hidden" id="editBudgetCategoryId" />
+            <div class="mb-3">
+              <label for="editBudgetCategoryName" class="form-label">Category</label>
+              <input type="text" class="form-control" id="editBudgetCategoryName" readonly />
+            </div>
+            <div class="mb-3">
+              <label for="editBudgetAmount" class="form-label">Budget Amount (LKR)</label>
+              <input type="number" class="form-control" id="editBudgetAmount" min="0" step="0.01" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script src="config.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/budgets.js"></script>
+  <script src="js/theme.js"></script>
+</body>
+</html>
