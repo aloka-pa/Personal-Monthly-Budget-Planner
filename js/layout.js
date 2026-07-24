@@ -17,9 +17,14 @@
       body.classList.toggle("sidebar-collapsed", collapsed);
       localStorage.setItem(STORAGE_KEY, String(collapsed));
       desktopToggle?.setAttribute("aria-expanded", String(!collapsed));
+      mobileToggle?.setAttribute("aria-expanded", String(!collapsed));
       desktopToggle?.setAttribute(
         "aria-label",
         collapsed ? "Expand sidebar" : "Collapse sidebar"
+      );
+      mobileToggle?.setAttribute(
+        "aria-label",
+        collapsed ? "Open navigation" : "Navigation is open"
       );
     }
 
@@ -40,7 +45,13 @@
     desktopToggle?.addEventListener("click", () => {
       setCollapsed(!body.classList.contains("sidebar-collapsed"));
     });
-    mobileToggle?.addEventListener("click", () => setDrawerOpen(true));
+    mobileToggle?.addEventListener("click", () => {
+      if (desktopQuery.matches) {
+        setCollapsed(false);
+      } else {
+        setDrawerOpen(true);
+      }
+    });
     closeButton?.addEventListener("click", () => setDrawerOpen(false));
     backdrop?.addEventListener("click", () => setDrawerOpen(false));
 
