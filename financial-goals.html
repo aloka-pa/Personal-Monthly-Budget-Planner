@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Financial Goals</title>
+  <script>
+    (function () {
+      var theme = localStorage.getItem("wc-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="css/styles.css" rel="stylesheet" />
+  <link href="css/pages/financial-goals.css" rel="stylesheet" />
+</head>
+<body class="app-layout">
+  <aside class="app-sidebar" id="appSidebar" aria-label="Primary navigation">
+    <div class="sidebar-header">
+      <span class="brand-mark" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
+      <div class="brand-copy"><span class="brand-title">Wallet Check</span><span class="brand-subtitle">Personal Finance Platform</span></div>
+      <button class="sidebar-control ms-auto d-none d-lg-inline-flex" id="sidebarToggle" type="button" aria-label="Collapse sidebar" aria-expanded="true"><i class="bi bi-list"></i></button>
+      <button class="sidebar-control ms-auto d-lg-none" id="sidebarClose" type="button" aria-label="Close navigation"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Workspace</div>
+      <a class="sidebar-link" href="app.html"><i class="bi bi-house-door"></i><span class="sidebar-link-label">Home</span></a>
+      <a class="sidebar-link" href="dashboard.html"><i class="bi bi-bar-chart"></i><span class="sidebar-link-label">Dashboard</span></a>
+      <a class="sidebar-link" href="budgets.html"><i class="bi bi-cash-stack"></i><span class="sidebar-link-label">Budgets</span></a>
+      <a class="sidebar-link active" href="financial-goals.html" aria-current="page"><i class="bi bi-bullseye"></i><span class="sidebar-link-label">Financial Goals</span></a>
+      <div class="sidebar-section-label mt-4">Explore</div>
+      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-receipt"></i><span class="sidebar-link-label">Bills</span><span class="coming-soon">Soon</span></a>
+      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-arrow-repeat"></i><span class="sidebar-link-label">Subscriptions</span><span class="coming-soon">Soon</span></a>
+      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-graph-up-arrow"></i><span class="sidebar-link-label">Reports</span><span class="coming-soon">Soon</span></a>
+      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-gear"></i><span class="sidebar-link-label">Settings</span><span class="coming-soon">Soon</span></a>
+    </nav>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+  <header class="top-header app-main">
+    <div class="container-fluid app-shell d-flex align-items-center gap-3">
+      <button class="header-action d-lg-none" id="mobileMenuToggle" type="button" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false"><i class="bi bi-list"></i></button>
+      <div class="me-auto"><h1 class="page-heading">Financial Goals</h1><p class="page-description">Build and track progress toward your long-term savings goals.</p></div>
+      <button type="button" class="header-action" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
+      <button id="logoutBtn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-right me-sm-2"></i><span class="d-none d-sm-inline">Logout</span></button>
+    </div>
+  </header>
+
+  <main class="container-fluid app-shell app-main content-area pb-5">
+    <div id="goalsAlert" class="alert d-none" role="alert"></div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-bullseye"></i></div><div class="small text-muted">Total Goals</div><div class="h4 mb-0" id="totalGoals">0</div></div></div></div>
+      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-flag"></i></div><div class="small text-muted">Total Target</div><div class="h4 mb-0" id="totalTarget">LKR 0.00</div></div></div></div>
+      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-piggy-bank"></i></div><div class="small text-muted">Total Saved</div><div class="h4 mb-0" id="totalSaved">LKR 0.00</div></div></div></div>
+      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-check-circle"></i></div><div class="small text-muted">Completed Goals</div><div class="h4 mb-0" id="completedGoals">0</div></div></div></div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-4">
+      <div class="d-flex flex-column flex-sm-row gap-2 flex-grow-1">
+        <div class="input-group goals-search"><span class="input-group-text"><i class="bi bi-search"></i></span><input id="goalSearch" class="form-control" type="search" placeholder="Search goals by name" aria-label="Search goals by name" /></div>
+        <select id="goalSort" class="form-select goals-sort" aria-label="Sort financial goals">
+          <option value="target_date">Target Date</option><option value="progress">Progress</option><option value="priority">Priority</option>
+          <option value="target_amount">Target Amount</option><option value="newest">Newest</option><option value="oldest">Oldest</option>
+        </select>
+      </div>
+      <button class="btn btn-primary flex-shrink-0" id="createGoalBtn" type="button"><i class="bi bi-plus-lg me-2"></i>Create Goal</button>
+    </div>
+
+    <div id="goalsLoading" class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading goals...</div>
+    <div id="goalGrid" class="row g-3 d-none"></div>
+    <div id="goalsEmpty" class="card empty-state d-none align-items-center justify-content-center text-center p-5">
+      <div class="empty-state-icon mb-3"><i class="bi bi-bullseye"></i></div>
+      <h2 class="h5">Start your first financial goal</h2>
+      <p class="text-muted">Set a target and record contributions as your savings grow.</p>
+      <button class="btn btn-primary" type="button" data-create-goal><i class="bi bi-plus-lg me-2"></i>Create Goal</button>
+    </div>
+    <div id="goalsNoResults" class="card empty-state d-none align-items-center justify-content-center text-center p-5">
+      <div class="empty-state-icon mb-3"><i class="bi bi-search"></i></div><h2 class="h5">No matching goals</h2><p class="text-muted mb-0">Try a different goal name.</p>
+    </div>
+  </main>
+
+  <div class="modal fade" id="goalModal" tabindex="-1" aria-labelledby="goalModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <form id="goalForm">
+        <div class="modal-header"><h2 class="modal-title fs-5" id="goalModalTitle">Create Goal</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <div id="goalFormAlert" class="alert d-none" role="alert"></div><input id="goalId" type="hidden" />
+          <div class="mb-3"><label class="form-label" for="goalName">Goal Name</label><input class="form-control" id="goalName" maxlength="150" required /></div>
+          <div class="row g-3 mb-3"><div class="col-sm-6"><label class="form-label" for="goalTarget">Target Amount (LKR)</label><input class="form-control" id="goalTarget" type="number" min="0.01" step="0.01" required /></div><div class="col-sm-6"><label class="form-label" for="goalDate">Target Date</label><input class="form-control" id="goalDate" type="date" /></div></div>
+          <div class="row g-3 mb-3"><div class="col-sm-6"><label class="form-label" for="goalPriority">Priority</label><select class="form-select" id="goalPriority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div><div class="col-sm-6"><label class="form-label" for="goalIcon">Icon <span class="text-muted">(optional)</span></label><input class="form-control" id="goalIcon" maxlength="100" placeholder="e.g. 🏠 or bi-house" /></div></div>
+          <div><label class="form-label" for="goalNotes">Notes <span class="text-muted">(optional)</span></label><textarea class="form-control" id="goalNotes" rows="3" maxlength="2000"></textarea></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="saveGoalBtn" type="submit">Save Goal</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <div class="modal fade" id="contributionModal" tabindex="-1" aria-labelledby="contributionModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
+      <div class="modal-header"><div><h2 class="modal-title fs-5" id="contributionModalTitle">Contributions</h2><div class="small text-muted" id="contributionGoalName"></div></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body">
+        <div id="contributionAlert" class="alert d-none" role="alert"></div>
+        <form id="contributionForm" class="row g-2 align-items-end mb-4">
+          <input id="contributionId" type="hidden" /><input id="contributionGoalId" type="hidden" />
+          <div class="col-sm-4"><label class="form-label" for="contributionAmount">Amount (LKR)</label><input class="form-control" id="contributionAmount" type="number" min="0.01" step="0.01" required /></div>
+          <div class="col-sm-3"><label class="form-label" for="contributionDate">Date</label><input class="form-control" id="contributionDate" type="date" required /></div>
+          <div class="col-sm"><label class="form-label" for="contributionNote">Note <span class="text-muted">(optional)</span></label><input class="form-control" id="contributionNote" maxlength="1000" /></div>
+          <div class="col-sm-auto"><button class="btn btn-primary w-100" id="saveContributionBtn" type="submit">Add</button></div>
+        </form>
+        <div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Date</th><th>Note</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead><tbody id="contributionList"></tbody></table></div>
+      </div>
+    </div></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script><script src="js/supabaseClient.js"></script><script src="js/auth.js"></script>
+  <script src="js/financial-goals.js"></script><script src="js/theme.js"></script><script src="js/layout.js"></script>
+</body>
+</html>

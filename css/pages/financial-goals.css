@@ -1,0 +1,118 @@
+/* ------------------------------------------------------------
+   Financial Goals
+   ------------------------------------------------------------ */
+.summary-icon,
+.goal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-blue);
+  background: var(--color-blue-bg);
+}
+
+.summary-icon {
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.65rem;
+}
+
+.goals-search {
+  max-width: 34rem;
+}
+
+.goals-sort {
+  max-width: 13rem;
+}
+
+.goal-card {
+  overflow: hidden;
+}
+
+.goal-card .border-top {
+  border-color: var(--border) !important;
+}
+
+.goal-icon {
+  --goal-color: var(--color-blue);
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 3rem;
+  border-radius: 0.9rem;
+  color: var(--goal-color);
+  font-size: 1.35rem;
+}
+
+.goal-menu {
+  padding: 0.25rem 0.5rem;
+}
+
+.goal-badge {
+  display: inline-flex;
+  padding: 0.22rem 0.5rem;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.priority-high, .status-overdue { color: var(--color-red); background: var(--color-red-bg); }
+.priority-medium { color: var(--color-yellow); background: var(--color-yellow-bg); }
+.priority-low, .status-completed { color: var(--color-green); background: var(--color-green-bg); }
+.status-in-progress { color: var(--color-blue); background: var(--color-blue-bg); }
+.status-not-started { color: var(--text-muted); background: var(--surface-2); }
+
+.goal-progress {
+  height: 0.55rem;
+  background: var(--surface-2);
+}
+
+.goal-progress .progress-bar {
+  background: var(--color-blue);
+  border-radius: inherit;
+}
+
+.goal-notes {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.goals-overall-progress {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.dashboard-goal-item {
+  padding: 0.7rem;
+  border-radius: 0.75rem;
+  background: var(--surface-2);
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.dropdown-menu {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.dropdown-item {
+  color: var(--text);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+@media (max-width: 575.98px) {
+  .goals-search,
+  .goals-sort {
+    max-width: none;
+  }
+}

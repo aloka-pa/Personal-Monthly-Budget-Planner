@@ -24,6 +24,7 @@ const AUTH_PAGES = {
   APP: "app.html",
   BUDGETS: "budgets.html",
   DASHBOARD: "dashboard.html",
+  GOALS: "financial-goals.html",
 };
 
 // Figure out which page we're currently on by looking at the
@@ -35,6 +36,7 @@ function getCurrentPage() {
   if (path.endsWith(AUTH_PAGES.APP)) return AUTH_PAGES.APP;
   if (path.endsWith(AUTH_PAGES.BUDGETS)) return AUTH_PAGES.BUDGETS;
   if (path.endsWith(AUTH_PAGES.DASHBOARD)) return AUTH_PAGES.DASHBOARD;
+  if (path.endsWith(AUTH_PAGES.GOALS)) return AUTH_PAGES.GOALS;
   return AUTH_PAGES.LOGIN;
 }
 
@@ -48,7 +50,8 @@ async function guardPageWithSession() {
   const isProtectedPage =
     currentPage === AUTH_PAGES.APP ||
     currentPage === AUTH_PAGES.BUDGETS ||
-    currentPage === AUTH_PAGES.DASHBOARD;
+    currentPage === AUTH_PAGES.DASHBOARD ||
+    currentPage === AUTH_PAGES.GOALS;
 
   if (session && currentPage === AUTH_PAGES.LOGIN) {
     // Already logged in but sitting on the login page -> go to app.

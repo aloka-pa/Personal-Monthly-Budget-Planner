@@ -90,6 +90,69 @@ async function fetchAllExpenses(userId) {
   return data || [];
 }
 
+// Loads the financial goals widget on the dashboard, showing total saved vs target and top 3 goals.
+async function loadFinancialGoalsWidget(userId) {
+  const loading = document.getElementById("dashboardGoalsLoading");
+  const content = document.getElementById("dashboardGoalsContent");
+  if (!loading || !content) return;
+
+  const [{ data: goals, error: goalsError }, { data: contributions, error: contributionsError }] =
+    await Promise.all([
+      supabaseClient
+        .from("financial_goals")
+        .select("id, goal_name, target_amount, icon, created_at")
+        .eq("user_id", userId),
+      supabaseClient
+        .from("goal_contributions")
+        .select("goal_id, amount")
+        .eq("user_id", userId),
+    ]);
+
+  if (goalsError || contributionsError) throw goalsError || contributionsError;
+
+  const savedByGoal = {};
+  (contributions || []).forEach((item) => {
+    savedByGoal[item.goal_id] = (savedByGoal[item.goal_id] || 0) + Number(item.amount);
+  });
+
+  const enriched = (goals || []).map((goal) => {
+    const saved = savedByGoal[goal.id] || 0;
+    const target = Number(goal.target_amount);
+    return { ...goal, saved, target, progress: target > 0 ? (saved / target) * 100 : 0 };
+  });
+  const totalTarget = enriched.reduce((sum, goal) => sum + goal.target, 0);
+  const totalSaved = enriched.reduce((sum, goal) => sum + goal.saved, 0);
+  const percentage = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+  const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "LKR" });
+
+  document.getElementById("dashboardGoalsPercent").textContent = `${percentage.toFixed(1)}%`;
+  document.getElementById("dashboardGoalsBar").style.width = `${Math.min(percentage, 100)}%`;
+  document.getElementById("dashboardGoalsSaved").textContent = money.format(totalSaved);
+  document.getElementById("dashboardGoalsTarget").textContent = money.format(totalTarget);
+
+  const topGoals = document.getElementById("dashboardTopGoals");
+  topGoals.innerHTML = "";
+  [...enriched]
+    .sort((a, b) => b.progress - a.progress || new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 3)
+    .forEach((goal) => {
+      const col = document.createElement("div");
+      col.className = "col-12 col-md-4";
+      const safeName = String(goal.goal_name).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
+      }[char]));
+      col.innerHTML = `<div class="dashboard-goal-item h-100"><div class="d-flex justify-content-between gap-2 mb-2"><strong class="small text-truncate">${safeName}</strong><span class="small">${goal.progress.toFixed(0)}%</span></div><div class="progress goal-progress"><div class="progress-bar" style="width:${Math.min(goal.progress, 100)}%"></div></div></div>`;
+      topGoals.appendChild(col);
+    });
+
+  document.getElementById("dashboardGoalsEmpty").classList.toggle("d-none", enriched.length !== 0);
+  loading.classList.add("d-none");
+  content.classList.remove("d-none");
+}
+
+//End of financial goals widget code
+
+// Shows a temporary alert message at the top of the dashboard.
 function showDashboardAlert(message, type = "danger") {
   const alertBox = document.getElementById("dashboardAlert");
   if (!alertBox) return;
@@ -232,6 +295,14 @@ async function loadDashboard() {
   } catch (err) {
     showDashboardAlert("Failed to load dashboard data.");
     console.error(err);
+  }
+
+  try {
+    await loadFinancialGoalsWidget(user.id);
+  } catch (err) {
+    const loading = document.getElementById("dashboardGoalsLoading");
+    if (loading) loading.textContent = "Financial goals could not be loaded.";
+    console.error("Failed to load financial goals widget:", err);
   }
 }
 
