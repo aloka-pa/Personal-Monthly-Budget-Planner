@@ -25,6 +25,7 @@ const AUTH_PAGES = {
   BUDGETS: "budgets.html",
   DASHBOARD: "dashboard.html",
   GOALS: "financial-goals.html",
+  PAYMENTS: "payments.html",
 };
 
 // Figure out which page we're currently on by looking at the
@@ -37,6 +38,7 @@ function getCurrentPage() {
   if (path.endsWith(AUTH_PAGES.BUDGETS)) return AUTH_PAGES.BUDGETS;
   if (path.endsWith(AUTH_PAGES.DASHBOARD)) return AUTH_PAGES.DASHBOARD;
   if (path.endsWith(AUTH_PAGES.GOALS)) return AUTH_PAGES.GOALS;
+  if (path.endsWith(AUTH_PAGES.PAYMENTS)) return AUTH_PAGES.PAYMENTS;
   return AUTH_PAGES.LOGIN;
 }
 
@@ -51,7 +53,8 @@ async function guardPageWithSession() {
     currentPage === AUTH_PAGES.APP ||
     currentPage === AUTH_PAGES.BUDGETS ||
     currentPage === AUTH_PAGES.DASHBOARD ||
-    currentPage === AUTH_PAGES.GOALS;
+    currentPage === AUTH_PAGES.GOALS ||
+    currentPage === AUTH_PAGES.PAYMENTS;
 
   if (session && currentPage === AUTH_PAGES.LOGIN) {
     // Already logged in but sitting on the login page -> go to app.
