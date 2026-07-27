@@ -64,7 +64,6 @@
 
 .goal-progress {
   height: 0.55rem;
-  background: var(--surface-2);
 }
 
 .goal-progress .progress-bar {
