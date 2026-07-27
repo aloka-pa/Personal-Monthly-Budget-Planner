@@ -16,6 +16,20 @@
 // without an extra round trip to Supabase.
 const expenseCache = new Map();
 
+const EXPENSE_PAYMENT_METHODS = new Set([
+  "Cash",
+  "Debit Card",
+  "Credit Card",
+  "Bank Transfer",
+  "Koko",
+  "MintPay",
+  "Other",
+]);
+
+function isValidPaymentMethod(paymentMethod) {
+  return EXPENSE_PAYMENT_METHODS.has(paymentMethod);
+}
+
 // Loads predefined + the user's custom categories into the given
 // <select> element (used for both the add-expense form and the
 // edit-expense modal), optionally selecting a given category id
@@ -131,6 +145,7 @@ function setupExpenseForm() {
     if (!user) return;
 
     const amount = parseFloat(document.getElementById("expenseAmount").value);
+    const paymentMethod = document.getElementById("expensePaymentMethod").value;
     const categoryId = document.getElementById("expenseCategory").value;
     const datetimeValue = document.getElementById("expenseDatetime").value;
     const description = document.getElementById("expenseDescription").value.trim();
@@ -138,6 +153,10 @@ function setupExpenseForm() {
 
     if (isNaN(amount) || amount <= 0) {
       showExpenseAlert("Amount must be greater than 0.");
+      return;
+    }
+    if (!isValidPaymentMethod(paymentMethod)) {
+      showExpenseAlert("Please choose a valid payment method.");
       return;
     }
     if (!categoryId) {
@@ -153,6 +172,7 @@ function setupExpenseForm() {
       user_id: user.id,
       category_id: categoryId,
       amount,
+      payment_method: paymentMethod,
       expense_datetime: new Date(datetimeValue).toISOString(),
       budget_month: window.getViewedMonthFirstDay(),
       description: description || null,
@@ -166,6 +186,7 @@ function setupExpenseForm() {
 
     showExpenseAlert("Expense added!", "success");
     form.reset();
+    document.getElementById("expensePaymentMethod").value = "Cash";
     setDefaultExpenseDatetime();
     await loadExpenses();
   });
@@ -195,7 +216,15 @@ function buildExpenseRow(expense) {
   dateCell.textContent = new Date(expense.expense_datetime).toLocaleString();
 
   const categoryCell = document.createElement("td");
-  categoryCell.textContent = expense.categories ? expense.categories.name : "-";
+  const categoryName = document.createElement("div");
+  categoryName.textContent = expense.categories ? expense.categories.name : "-";
+
+  const paymentMethod = document.createElement("div");
+  paymentMethod.className = "expense-payment-method";
+  paymentMethod.textContent = expense.payment_method || "Not specified";
+
+  categoryCell.appendChild(categoryName);
+  categoryCell.appendChild(paymentMethod);
 
   const amountCell = document.createElement("td");
   amountCell.textContent = Number(expense.amount).toFixed(2);
@@ -256,7 +285,9 @@ window.loadExpenses = async function loadExpenses() {
 
   const { data, error } = await supabaseClient
     .from("expenses")
-    .select("id, amount, expense_datetime, description, is_recurring, category_id, categories(name)")
+    .select(
+      "id, amount, payment_method, expense_datetime, description, is_recurring, category_id, categories(name)"
+    )
     .eq("user_id", user.id)
     .eq("budget_month", viewedMonth)
     .order("expense_datetime", { ascending: false });
@@ -379,6 +410,20 @@ async function openEditExpenseModal(expenseId) {
 
   document.getElementById("editExpenseId").value = expense.id;
   document.getElementById("editExpenseAmount").value = expense.amount;
+  const paymentMethodSelect = document.getElementById("editExpensePaymentMethod");
+  const legacyOption = paymentMethodSelect.querySelector('[data-legacy-null="true"]');
+  if (legacyOption) legacyOption.remove();
+
+  if (isValidPaymentMethod(expense.payment_method)) {
+    paymentMethodSelect.value = expense.payment_method;
+  } else {
+    const notSpecifiedOption = document.createElement("option");
+    notSpecifiedOption.value = "";
+    notSpecifiedOption.textContent = "Not specified";
+    notSpecifiedOption.dataset.legacyNull = "true";
+    paymentMethodSelect.prepend(notSpecifiedOption);
+    paymentMethodSelect.value = "";
+  }
   document.getElementById("editExpenseDatetime").value = toDatetimeLocalValue(
     new Date(expense.expense_datetime)
   );
@@ -407,6 +452,7 @@ function setupEditExpenseForm() {
 
     const id = document.getElementById("editExpenseId").value;
     const amount = parseFloat(document.getElementById("editExpenseAmount").value);
+    const paymentMethod = document.getElementById("editExpensePaymentMethod").value;
     const categoryId = document.getElementById("editExpenseCategory").value;
     const datetimeValue = document.getElementById("editExpenseDatetime").value;
     const description = document.getElementById("editExpenseDescription").value.trim();
@@ -416,12 +462,17 @@ function setupEditExpenseForm() {
       showEditExpenseAlert("Amount must be greater than 0.");
       return;
     }
+    if (paymentMethod && !isValidPaymentMethod(paymentMethod)) {
+      showEditExpenseAlert("Please choose a valid payment method.");
+      return;
+    }
 
     const { error } = await supabaseClient
       .from("expenses")
       .update({
         category_id: categoryId,
         amount,
+        payment_method: paymentMethod || null,
         expense_datetime: new Date(datetimeValue).toISOString(),
         description: description || null,
         is_recurring: isRecurring,
