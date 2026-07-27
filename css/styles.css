@@ -627,6 +627,13 @@ h3,
   background-color: var(--surface-2);
 }
 
+.expense-payment-method {
+  margin-top: 0.15rem;
+  color: var(--text-muted);
+  font-size:0.9rem;
+  line-height: 1.25;
+}
+
 .sort-btn {
   border: 0;
   background: transparent;
