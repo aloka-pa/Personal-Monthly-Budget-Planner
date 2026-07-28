@@ -18,14 +18,6 @@ function getViewedMonthFirstDay() {
   return `${year}-${month}-01`;
 }
 
-function isViewingRealCurrentMonth() {
-  const now = new Date();
-  return (
-    viewedMonthDate.getFullYear() === now.getFullYear() &&
-    viewedMonthDate.getMonth() === now.getMonth()
-  );
-}
-
 function formatCurrency(amount) {
   return `LKR ${Number(amount).toFixed(2)}`;
 }
@@ -111,9 +103,6 @@ function renderMonthNavigator() {
 
   const labelEl = document.getElementById("viewedMonthLabel");
   if (labelEl) labelEl.textContent = label;
-
-  const nextBtn = document.getElementById("nextMonthBtn");
-  if (nextBtn) nextBtn.disabled = isViewingRealCurrentMonth();
 }
 
 function setupMonthNavigator() {
@@ -130,7 +119,6 @@ function setupMonthNavigator() {
   });
 
   nextBtn.addEventListener("click", async () => {
-    if (isViewingRealCurrentMonth()) return;
     viewedMonthDate = new Date(viewedMonthDate.getFullYear(), viewedMonthDate.getMonth() + 1, 1);
     renderMonthNavigator();
     await loadBudgetPageData();
