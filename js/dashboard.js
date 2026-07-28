@@ -90,7 +90,7 @@ async function fetchAllExpenses(userId) {
   return data || [];
 }
 
-// Loads the financial goals widget on the dashboard, showing total saved vs target and top 3 goals.
+// Loads the financial goals widget on the dashboard, showing progress for active goals only.
 async function loadFinancialGoalsWidget(userId) {
   const loading = document.getElementById("dashboardGoalsLoading");
   const content = document.getElementById("dashboardGoalsContent");
@@ -100,7 +100,7 @@ async function loadFinancialGoalsWidget(userId) {
     await Promise.all([
       supabaseClient
         .from("financial_goals")
-        .select("id, goal_name, target_amount, icon, created_at")
+        .select("id, goal_name, target_amount, icon, is_completed, created_at")
         .eq("user_id", userId),
       supabaseClient
         .from("goal_contributions")
@@ -115,11 +115,13 @@ async function loadFinancialGoalsWidget(userId) {
     savedByGoal[item.goal_id] = (savedByGoal[item.goal_id] || 0) + Number(item.amount);
   });
 
-  const enriched = (goals || []).map((goal) => {
-    const saved = savedByGoal[goal.id] || 0;
-    const target = Number(goal.target_amount);
-    return { ...goal, saved, target, progress: target > 0 ? (saved / target) * 100 : 0 };
-  });
+  const enriched = (goals || [])
+    .map((goal) => {
+      const saved = savedByGoal[goal.id] || 0;
+      const target = Number(goal.target_amount);
+      return { ...goal, saved, target, progress: target > 0 ? (saved / target) * 100 : 0 };
+    })
+    .filter((goal) => !goal.is_completed && goal.saved < goal.target);
   const totalTarget = enriched.reduce((sum, goal) => sum + goal.target, 0);
   const totalSaved = enriched.reduce((sum, goal) => sum + goal.saved, 0);
   const percentage = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
