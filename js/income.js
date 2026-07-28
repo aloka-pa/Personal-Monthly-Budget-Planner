@@ -15,26 +15,13 @@
 // database call instead of two separate ones.
 // ============================================================
 
-// Returns the current REAL calendar month (based on today's actual
-// date) as "YYYY-MM-01". Used as the upper bound for navigation -
-// you can't view/set income for a month that hasn't started yet.
-function getCurrentMonthFirstDay() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}-01`;
-}
-
 // ------------------------------------------------------------
 // MONTH NAVIGATION (shared with expenses.js)
 // ------------------------------------------------------------
 // `viewedMonthDate` is the month currently shown on screen for
 // both the Income card and the Expense list/balance. It starts
-// on today's real month and can be moved backward/forward with
-// the Prev/Next buttons, but never forward past today's real
-// month - that's what answers "when can I enter August's income"
-// - the app always follows your device's actual date, so August
-// unlocks automatically the moment the calendar flips to August 1.
+// on today's real month and can be moved backward or forward
+// without restricting empty or future months.
 // ------------------------------------------------------------
 let viewedMonthDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
@@ -52,16 +39,7 @@ window.getViewedMonthRange = function getViewedMonthRange() {
   return { start, end };
 };
 
-function isViewingRealCurrentMonth() {
-  const now = new Date();
-  return (
-    viewedMonthDate.getFullYear() === now.getFullYear() &&
-    viewedMonthDate.getMonth() === now.getMonth()
-  );
-}
-
-// Updates the on-screen month label + card titles, and enables/
-// disables the Next button (can't go past today's real month).
+// Updates the on-screen month label and card titles.
 function renderMonthNavigator() {
   const label = viewedMonthDate.toLocaleDateString(undefined, {
     month: "long",
@@ -76,9 +54,6 @@ function renderMonthNavigator() {
 
   const expenseTitleEl = document.getElementById("expenseListTitle");
   if (expenseTitleEl) expenseTitleEl.textContent = `Expenses - ${label}`;
-
-  const nextBtn = document.getElementById("nextMonthBtn");
-  if (nextBtn) nextBtn.disabled = isViewingRealCurrentMonth();
 }
 
 // Wires up the Prev/Next buttons. Moving months reloads both the
@@ -99,7 +74,6 @@ function setupMonthNavigator() {
   });
 
   nextBtn.addEventListener("click", async () => {
-    if (isViewingRealCurrentMonth()) return; // guard, button is disabled anyway
     viewedMonthDate = new Date(viewedMonthDate.getFullYear(), viewedMonthDate.getMonth() + 1, 1);
     renderMonthNavigator();
     await loadIncome();
