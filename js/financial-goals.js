@@ -56,17 +56,21 @@
   }
 
   function sortedFilteredGoals(goals) {
-    const query = byId("goalSearch").value.trim().toLocaleLowerCase();
-    const sort = byId("goalSort").value;
-    const filtered = goals.filter((goal) => goal.goal_name.toLocaleLowerCase().includes(query));
-    return filtered.sort((a, b) => {
-      if (sort === "progress") return b.progress - a.progress;
-      if (sort === "priority") return priorityRank[a.priority] - priorityRank[b.priority];
-      if (sort === "target_amount") return Number(b.target_amount) - Number(a.target_amount);
-      if (sort === "newest") return new Date(b.created_at) - new Date(a.created_at);
-      if (sort === "oldest") return new Date(a.created_at) - new Date(b.created_at);
-      return (a.target_date || "9999-12-31").localeCompare(b.target_date || "9999-12-31");
-    });
+  const query = byId("goalSearch").value.trim().toLocaleLowerCase();
+  const sort = byId("goalSort").value;
+  const filtered = goals.filter((goal) => goal.goal_name.toLocaleLowerCase().includes(query));
+  return filtered.sort((a, b) => {
+    const aDone = a.status === "Completed" ? 1 : 0;
+    const bDone = b.status === "Completed" ? 1 : 0;
+    if (aDone !== bDone) return aDone - bDone; // completed goals sink to the end
+
+    if (sort === "progress") return b.progress - a.progress;
+    if (sort === "priority") return priorityRank[a.priority] - priorityRank[b.priority];
+    if (sort === "target_amount") return Number(b.target_amount) - Number(a.target_amount);
+    if (sort === "newest") return new Date(b.created_at) - new Date(a.created_at);
+    if (sort === "oldest") return new Date(a.created_at) - new Date(b.created_at);
+    return (a.target_date || "9999-12-31").localeCompare(b.target_date || "9999-12-31");
+  });
   }
 
   function goalCard(goal) {
