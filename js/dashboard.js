@@ -28,6 +28,16 @@ const CATEGORY_LINE_COLORS = [
   "#ddb6c6", // yellow
   "#5e5ce6", // indigo
   "#8e8e93", // gray
+  "#4dd0c7", // teal
+  "#ff8a80", // coral
+  "#c792ea", // lavender
+  "#ffd54f", // gold
+  "#66bb6a", // emerald
+  "#ff7597", // rose
+  "#7986cb", // periwinkle
+  "#f0a868", // amber
+  "#4fc3f7", // sky
+  "#b39ddb", // violet
 ];
 
 // Chart.js text/gridline colors that read well on both the light
@@ -90,7 +100,7 @@ async function fetchAllExpenses(userId) {
   return data || [];
 }
 
-// Loads the financial goals widget on the dashboard, showing progress for active goals only.
+// Loads the financial goals widget on the dashboard: overall progress bar only.
 async function loadFinancialGoalsWidget(userId) {
   const loading = document.getElementById("dashboardGoalsLoading");
   const content = document.getElementById("dashboardGoalsContent");
@@ -100,7 +110,7 @@ async function loadFinancialGoalsWidget(userId) {
     await Promise.all([
       supabaseClient
         .from("financial_goals")
-        .select("id, goal_name, target_amount, icon, is_completed, created_at")
+        .select("id, target_amount")
         .eq("user_id", userId),
       supabaseClient
         .from("goal_contributions")
@@ -115,15 +125,15 @@ async function loadFinancialGoalsWidget(userId) {
     savedByGoal[item.goal_id] = (savedByGoal[item.goal_id] || 0) + Number(item.amount);
   });
 
-  const enriched = (goals || [])
-    .map((goal) => {
-      const saved = savedByGoal[goal.id] || 0;
-      const target = Number(goal.target_amount);
-      return { ...goal, saved, target, progress: target > 0 ? (saved / target) * 100 : 0 };
-    })
-    .filter((goal) => !goal.is_completed && goal.saved < goal.target);
-  const totalTarget = enriched.reduce((sum, goal) => sum + goal.target, 0);
-  const totalSaved = enriched.reduce((sum, goal) => sum + goal.saved, 0);
+  const allGoals = (goals || []).map((goal) => {
+    const saved = savedByGoal[goal.id] || 0;
+    const target = Number(goal.target_amount);
+    return { ...goal, saved, target, progress: target > 0 ? (saved / target) * 100 : 0 };
+  });
+
+  // Totals mirror the Financial Goals page (all goals, not just active ones).
+  const totalTarget = allGoals.reduce((sum, goal) => sum + goal.target, 0);
+  const totalSaved = allGoals.reduce((sum, goal) => sum + goal.saved, 0);
   const percentage = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
   const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "LKR" });
 
@@ -132,22 +142,6 @@ async function loadFinancialGoalsWidget(userId) {
   document.getElementById("dashboardGoalsSaved").textContent = money.format(totalSaved);
   document.getElementById("dashboardGoalsTarget").textContent = money.format(totalTarget);
 
-  const topGoals = document.getElementById("dashboardTopGoals");
-  topGoals.innerHTML = "";
-  [...enriched]
-    .sort((a, b) => b.progress - a.progress || new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 3)
-    .forEach((goal) => {
-      const col = document.createElement("div");
-      col.className = "col-12 col-md-4";
-      const safeName = String(goal.goal_name).replace(/[&<>"']/g, (char) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
-      }[char]));
-      col.innerHTML = `<div class="dashboard-goal-item h-100"><div class="d-flex justify-content-between gap-2 mb-2"><strong class="small text-truncate">${safeName}</strong><span class="small">${goal.progress.toFixed(0)}%</span></div><div class="progress goal-progress"><div class="progress-bar" style="width:${Math.min(goal.progress, 100)}%"></div></div></div>`;
-      topGoals.appendChild(col);
-    });
-
-  document.getElementById("dashboardGoalsEmpty").classList.toggle("d-none", enriched.length !== 0);
   loading.classList.add("d-none");
   content.classList.remove("d-none");
 }
