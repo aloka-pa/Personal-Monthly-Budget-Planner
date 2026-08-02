@@ -30,6 +30,37 @@ function isValidPaymentMethod(paymentMethod) {
   return EXPENSE_PAYMENT_METHODS.has(paymentMethod);
 }
 
+// Appends a disabled, selected placeholder option to a <select>,
+// e.g. "Select a category" or "Select a payment method". Since the
+// field is `required`, the placeholder's empty value can never be
+// submitted - the user has to pick a real option.
+function addSelectPlaceholder(select, placeholderText) {
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = placeholderText;
+  select.appendChild(placeholder);
+}
+
+// Populates the payment method <select> with the fixed set of
+// supported methods, replacing the "Loading payment methods..."
+// text shown while the page was first rendering.
+function loadPaymentMethods(selectElementId = "expensePaymentMethod") {
+  const select = document.getElementById(selectElementId);
+  if (!select) return;
+  select.innerHTML = "";
+
+  addSelectPlaceholder(select, "Select a payment method");
+
+  EXPENSE_PAYMENT_METHODS.forEach((method) => {
+    const option = document.createElement("option");
+    option.value = method;
+    option.textContent = method;
+    select.appendChild(option);
+  });
+}
+
 // Loads predefined + the user's custom categories into the given
 // <select> element (used for both the add-expense form and the
 // edit-expense modal), optionally selecting a given category id
@@ -54,6 +85,8 @@ async function loadCategories(selectElementId = "expenseCategory", selectCategor
   const select = document.getElementById(selectElementId);
   if (!select) return;
   select.innerHTML = "";
+
+  addSelectPlaceholder(select, "Select a category");
 
   data.forEach((category) => {
     const option = document.createElement("option");
@@ -522,6 +555,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!document.getElementById("expenseForm")) return;
 
   loadCategories("expenseCategory");
+  loadPaymentMethods("expensePaymentMethod");
   setupAddCategory();
   setupExpenseForm();
   setDefaultExpenseDatetime();

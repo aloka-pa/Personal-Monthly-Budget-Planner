@@ -716,3 +716,14 @@ body.sidebar-collapsed main.app-main {
     margin-left: 0;
   }
 }
+
+/* ------------------------------------------------------------
+   Bug fix: Hide empty option in select dropdowns
+   ------------------------------------------------------------ */
+#expensePaymentMethod option[value=""] {
+  display: none;
+}
+
+#expenseCategory option[value=""] {
+  display: none;
+}
