@@ -18,10 +18,6 @@ function getViewedMonthFirstDay() {
   return `${year}-${month}-01`;
 }
 
-function formatCurrency(amount) {
-  return `LKR ${Number(amount).toFixed(2)}`;
-}
-
 function showBudgetsAlert(message, type = "danger") {
   const alertBox = document.getElementById("budgetsAlert");
   if (!alertBox) return;
@@ -495,6 +491,8 @@ async function loadBudgetPageData() {
     data: { user },
   } = await supabaseClient.auth.getUser();
   if (!user) return;
+
+  await window.getUserCurrency();
 
   const monthFirstDay = getViewedMonthFirstDay();
 

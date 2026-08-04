@@ -95,6 +95,29 @@ function hideIncomeAlert() {
   alertBox.classList.add("d-none");
 }
 
+// Shows the currency dropdown (first income entry, no currency
+// saved yet) or a fixed badge with the already-chosen currency.
+async function renderCurrencyPicker() {
+  const pickerWrap = document.getElementById("incomeCurrencyPickerWrap");
+  const badgeWrap = document.getElementById("incomeCurrencyBadgeWrap");
+  const badge = document.getElementById("incomeCurrencyBadge");
+  const hint = document.getElementById("incomeCurrencyHint");
+  if (!pickerWrap || !badgeWrap || !badge) return;
+
+  const currency = await window.getUserCurrency();
+
+  if (currency) {
+    badge.textContent = currency;
+    badgeWrap.classList.remove("d-none");
+    pickerWrap.classList.add("d-none");
+    if (hint) hint.classList.add("d-none");
+  } else {
+    pickerWrap.classList.remove("d-none");
+    badgeWrap.classList.add("d-none");
+    if (hint) hint.classList.remove("d-none");
+  }
+}
+
 // Fetches the viewed month's income row (if any) and pre-fills
 // the amount input.
 async function loadIncome() {
@@ -141,6 +164,34 @@ function setupIncomeForm() {
       return;
     }
 
+    // First-ever income entry: the currency dropdown is showing
+    // instead of the badge, so save the chosen currency to the
+    // user's profile before saving the income itself. Every page
+    // reads this saved value from then on - it's not editable
+    // afterwards to avoid mixing currencies in one user's data.
+    let currency = await window.getUserCurrency();
+    if (!currency) {
+      const selectedCurrency = document.getElementById("incomeCurrencySelect").value;
+      if (!window.SUPPORTED_CURRENCIES.includes(selectedCurrency)) {
+        showIncomeAlert("Please choose a currency.");
+        return;
+      }
+
+      const { error: currencyError } = await supabaseClient
+        .from("profiles")
+        .update({ currency: selectedCurrency })
+        .eq("user_id", user.id);
+
+      if (currencyError) {
+        showIncomeAlert(currencyError.message);
+        return;
+      }
+
+      currency = selectedCurrency;
+      window.setCachedCurrency(currency);
+      await renderCurrencyPicker();
+    }
+
     const viewedMonth = window.getViewedMonthFirstDay();
 
     const { error } = await supabaseClient
@@ -170,5 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupMonthNavigator();
   loadIncome();
+  renderCurrencyPicker();
   setupIncomeForm();
 });

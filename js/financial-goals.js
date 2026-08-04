@@ -1,14 +1,13 @@
 // Phase 3 Financial Goals: goal CRUD, contribution CRUD, progress, status, search and sorting.
 (function () {
   const state = { user: null, goals: [], contributions: new Map(), activeGoalId: null };
-  const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "LKR" });
   const priorityRank = { high: 0, medium: 1, low: 2 };
 
   const byId = (id) => document.getElementById(id);
   const escapeHtml = (value = "") => String(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;",
   }[char]));
-  const formatMoney = (value) => money.format(Number(value) || 0);
+  const formatMoney = (value) => window.formatCurrency(value);
   const localDate = () => {
     const now = new Date();
     return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -263,6 +262,7 @@
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) return;
     state.user = user;
+    await window.getUserCurrency();
     try { await loadGoals(); } catch (error) {
       byId("goalsLoading").classList.add("d-none");
       showAlert("goalsAlert", `Unable to load financial goals: ${error.message}`);

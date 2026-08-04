@@ -52,8 +52,8 @@
 
     <div class="row g-3 mb-4">
       <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-bullseye"></i></div><div class="small text-muted">Total Goals</div><div class="h4 mb-0" id="totalGoals">0</div></div></div></div>
-      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-flag"></i></div><div class="small text-muted">Total Target</div><div class="h4 mb-0" id="totalTarget">LKR 0.00</div></div></div></div>
-      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-piggy-bank"></i></div><div class="small text-muted">Total Saved</div><div class="h4 mb-0" id="totalSaved">LKR 0.00</div></div></div></div>
+      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-flag"></i></div><div class="small text-muted">Total Target</div><div class="h4 mb-0" id="totalTarget">0.00</div></div></div></div>
+      <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-piggy-bank"></i></div><div class="small text-muted">Total Saved</div><div class="h4 mb-0" id="totalSaved">0.00</div></div></div></div>
       <div class="col-6 col-xl-3"><div class="card h-100"><div class="card-body"><div class="summary-icon"><i class="bi bi-check-circle"></i></div><div class="small text-muted">Completed Goals</div><div class="h4 mb-0" id="completedGoals">0</div></div></div></div>
     </div>
 
@@ -88,7 +88,7 @@
         <div class="modal-body">
           <div id="goalFormAlert" class="alert d-none" role="alert"></div><input id="goalId" type="hidden" />
           <div class="mb-3"><label class="form-label" for="goalName">Goal Name</label><input class="form-control" id="goalName" maxlength="150" required /></div>
-          <div class="row g-3 mb-3"><div class="col-sm-6"><label class="form-label" for="goalTarget">Target Amount (LKR)</label><input class="form-control" id="goalTarget" type="number" min="0.01" step="0.01" required /></div><div class="col-sm-6"><label class="form-label" for="goalDate">Target Date</label><input class="form-control" id="goalDate" type="date" /></div></div>
+          <div class="row g-3 mb-3"><div class="col-sm-6"><label class="form-label" for="goalTarget" data-currency-label="Target Amount ({cur})">Target Amount (LKR)</label><input class="form-control" id="goalTarget" type="number" min="0.01" step="0.01" required /></div><div class="col-sm-6"><label class="form-label" for="goalDate">Target Date</label><input class="form-control" id="goalDate" type="date" /></div></div>
           <div class="row g-3 mb-3"><div class="col-sm-6"><label class="form-label" for="goalPriority">Priority</label><select class="form-select" id="goalPriority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div><div class="col-sm-6"><label class="form-label" for="goalIcon">Icon <span class="text-muted">(optional)</span></label><input class="form-control" id="goalIcon" maxlength="100" placeholder="e.g. 🏠 or bi-house" /></div></div>
           <div><label class="form-label" for="goalNotes">Notes <span class="text-muted">(optional)</span></label><textarea class="form-control" id="goalNotes" rows="3" maxlength="2000"></textarea></div>
         </div>
@@ -104,7 +104,7 @@
         <div id="contributionAlert" class="alert d-none" role="alert"></div>
         <form id="contributionForm" class="row g-2 align-items-end mb-4">
           <input id="contributionId" type="hidden" /><input id="contributionGoalId" type="hidden" />
-          <div class="col-sm-4"><label class="form-label" for="contributionAmount">Amount (LKR)</label><input class="form-control" id="contributionAmount" type="number" min="0.01" step="0.01" required /></div>
+          <div class="col-sm-4"><label class="form-label" for="contributionAmount" data-currency-label="Amount ({cur})">Amount (LKR)</label><input class="form-control" id="contributionAmount" type="number" min="0.01" step="0.01" required /></div>
           <div class="col-sm-3"><label class="form-label" for="contributionDate">Date</label><input class="form-control" id="contributionDate" type="date" required /></div>
           <div class="col-sm"><label class="form-label" for="contributionNote">Note <span class="text-muted">(optional)</span></label><input class="form-control" id="contributionNote" maxlength="1000" /></div>
           <div class="col-sm-auto"><button class="btn btn-primary w-100" id="saveContributionBtn" type="submit">Add</button></div>
@@ -117,6 +117,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script><script src="js/supabaseClient.js"></script><script src="js/auth.js"></script>
+  <script src="js/currency.js"></script>
   <script src="js/financial-goals.js"></script><script src="js/theme.js"></script><script src="js/layout.js"></script>
 </body>
 </html>

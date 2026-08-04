@@ -135,12 +135,11 @@ async function loadFinancialGoalsWidget(userId) {
   const totalTarget = allGoals.reduce((sum, goal) => sum + goal.target, 0);
   const totalSaved = allGoals.reduce((sum, goal) => sum + goal.saved, 0);
   const percentage = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
-  const money = new Intl.NumberFormat(undefined, { style: "currency", currency: "LKR" });
 
   document.getElementById("dashboardGoalsPercent").textContent = `${percentage.toFixed(1)}%`;
   document.getElementById("dashboardGoalsBar").style.width = `${Math.min(percentage, 100)}%`;
-  document.getElementById("dashboardGoalsSaved").textContent = money.format(totalSaved);
-  document.getElementById("dashboardGoalsTarget").textContent = money.format(totalTarget);
+  document.getElementById("dashboardGoalsSaved").textContent = window.formatCurrency(totalSaved);
+  document.getElementById("dashboardGoalsTarget").textContent = window.formatCurrency(totalTarget);
 
   loading.classList.add("d-none");
   content.classList.remove("d-none");
@@ -180,10 +179,10 @@ function buildMonthTile(monthInfo, income, totalExpenses) {
     <div class="card h-100 shadow-sm">
       <div class="card-body p-2 text-center">
         <div class="small text-muted mb-1">${monthInfo.label}</div>
-        <div class="small">In: LKR ${income.toFixed(2)}</div>
-        <div class="small mb-1">Out: LKR ${totalExpenses.toFixed(2)}</div>
+        <div class="small">In: ${window.formatCurrency(income)}</div>
+        <div class="small mb-1">Out: ${window.formatCurrency(totalExpenses)}</div>
         <div class="rounded p-1 small ${colorClass} text-white">
-          LKR ${balance.toFixed(2)}
+          ${window.formatCurrency(balance)}
         </div>
       </div>
     </div>
@@ -227,6 +226,8 @@ async function loadDashboard() {
     data: { user },
   } = await supabaseClient.auth.getUser();
   if (!user) return;
+
+  await window.getUserCurrency();
 
   try {
     const [incomes, expenses] = await Promise.all([

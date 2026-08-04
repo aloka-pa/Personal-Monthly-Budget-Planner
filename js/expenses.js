@@ -374,6 +374,8 @@ window.refreshBalance = async function refreshBalance() {
   } = await supabaseClient.auth.getUser();
   if (!user) return;
 
+  await window.getUserCurrency();
+
   const viewedMonth = window.getViewedMonthFirstDay();
 
   const { data: incomeRow, error: incomeError } = await supabaseClient
@@ -396,9 +398,9 @@ window.refreshBalance = async function refreshBalance() {
   const balance = income - totalExpenses;
   const percentSpent = income > 0 ? (totalExpenses / income) * 100 : totalExpenses > 0 ? 100 : 0;
 
-  document.getElementById("incomeTileAmount").textContent = `LKR ${income.toFixed(2)}`;
-  document.getElementById("spentTileAmount").textContent = `LKR ${totalExpenses.toFixed(2)}`;
-  document.getElementById("balanceAmount").textContent = `LKR ${balance.toFixed(2)}`;
+  document.getElementById("incomeTileAmount").textContent = window.formatCurrency(income);
+  document.getElementById("spentTileAmount").textContent = window.formatCurrency(totalExpenses);
+  document.getElementById("balanceAmount").textContent = window.formatCurrency(balance);
 
   balanceCard.classList.remove("bg-success", "bg-warning", "bg-danger", "text-white");
 

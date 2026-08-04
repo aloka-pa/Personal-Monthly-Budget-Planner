@@ -67,7 +67,7 @@
         <div class="card shadow-sm h-100">
           <div class="card-body text-center">
             <h2 class="h6 text-uppercase text-muted mb-2">Overall Budget</h2>
-            <p class="h4 mb-0" id="overallBudgetAmount">LKR 0.00</p>
+            <p class="h4 mb-0" id="overallBudgetAmount">0.00</p>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@
         <div class="card shadow-sm h-100">
           <div class="card-body text-center">
             <h2 class="h6 text-uppercase text-muted mb-2">Total Spent</h2>
-            <p class="h4 mb-0" id="totalSpentAmount">LKR 0.00</p>
+            <p class="h4 mb-0" id="totalSpentAmount">0.00</p>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@
         <div class="card shadow-sm h-100" id="remainingBudgetCard">
           <div class="card-body text-center">
             <h2 class="h6 text-uppercase mb-2">Remaining Budget</h2>
-            <p class="h4 mb-0" id="remainingBudgetAmount">LKR 0.00</p>
+            <p class="h4 mb-0" id="remainingBudgetAmount">0.00</p>
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@
               <input type="text" class="form-control" id="editBudgetCategoryName" readonly />
             </div>
             <div class="mb-3">
-              <label for="editBudgetAmount" class="form-label">Budget Amount (LKR)</label>
+              <label for="editBudgetAmount" class="form-label" data-currency-label="Budget Amount ({cur})">Budget Amount (LKR)</label>
               <input type="number" class="form-control" id="editBudgetAmount" min="0" step="0.01" required />
             </div>
           </div>
@@ -186,6 +186,7 @@
   <script src="config.js"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/currency.js"></script>
   <script src="js/budgets.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/layout.js"></script>
