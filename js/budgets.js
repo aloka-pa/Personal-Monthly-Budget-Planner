@@ -124,7 +124,7 @@ function setupMonthNavigator() {
 async function fetchCategories(userId) {
   const { data, error } = await supabaseClient
     .from("categories")
-    .select("id, name, user_id")
+    .select("id, name, user_id, include_in_budget")
     .or(`user_id.is.null,user_id.eq.${userId}`)
     .order("name", { ascending: true });
 
@@ -194,6 +194,7 @@ function buildBudgetRows(categories, expenses, budgetRows) {
     return {
       categoryId: category.id,
       categoryName: category.name,
+      includeInBudget: category.include_in_budget !== false,
       budgetAmount,
       spentAmount,
       remainingAmount,
@@ -244,9 +245,10 @@ function getVisibleRows() {
 }
 
 function renderOverviewCards(rows) {
-  const rowsWithBudget = rows.filter((row) => row.budgetAmount !== null);
+  const budgetEligibleRows = rows.filter((row) => row.includeInBudget);
+  const rowsWithBudget = budgetEligibleRows.filter((row) => row.budgetAmount !== null);
   const overallBudget = rowsWithBudget.reduce((sum, row) => sum + row.budgetAmount, 0);
-  const totalSpent = rows.reduce((sum, row) => sum + row.spentAmount, 0);
+  const totalSpent = budgetEligibleRows.reduce((sum, row) => sum + row.spentAmount, 0);
   const remainingBudget = overallBudget - totalSpent;
   const usagePercent = overallBudget > 0 ? (totalSpent / overallBudget) * 100 : 0;
 

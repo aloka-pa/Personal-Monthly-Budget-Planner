@@ -129,6 +129,9 @@ function setupAddCategory() {
       return;
     }
 
+    const includeInBudgetCheckbox = document.getElementById("newCategoryIncludeInBudget");
+    const includeInBudget = includeInBudgetCheckbox ? includeInBudgetCheckbox.checked : true;
+
     const {
       data: { user },
     } = await supabaseClient.auth.getUser();
@@ -136,7 +139,7 @@ function setupAddCategory() {
 
     const { data, error } = await supabaseClient
       .from("categories")
-      .insert({ user_id: user.id, name })
+      .insert({ user_id: user.id, name, include_in_budget: includeInBudget })
       .select("id")
       .single();
 
@@ -146,6 +149,7 @@ function setupAddCategory() {
     }
 
     input.value = "";
+    if (includeInBudgetCheckbox) includeInBudgetCheckbox.checked = true;
     await loadCategories("expenseCategory", data.id);
   });
 }
