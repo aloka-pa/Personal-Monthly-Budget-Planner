@@ -195,7 +195,6 @@ function setupExpenseForm() {
     const categoryId = document.getElementById("expenseCategory").value;
     const datetimeValue = document.getElementById("expenseDatetime").value;
     const description = document.getElementById("expenseDescription").value.trim();
-    const isRecurring = document.getElementById("expenseRecurring").checked;
 
     if (isNaN(amount) || amount <= 0) {
       showExpenseAlert("Amount must be greater than 0.");
@@ -222,7 +221,6 @@ function setupExpenseForm() {
       expense_datetime: new Date(datetimeValue).toISOString(),
       budget_month: window.getViewedMonthFirstDay(),
       description: description || null,
-      is_recurring: isRecurring,
     });
 
     if (error) {
@@ -278,14 +276,6 @@ function buildExpenseRow(expense) {
   const descriptionCell = document.createElement("td");
   descriptionCell.textContent = expense.description || "-";
 
-  const recurringCell = document.createElement("td");
-  if (expense.is_recurring) {
-    const badge = document.createElement("span");
-    badge.className = "badge bg-info text-dark";
-    badge.textContent = "Recurring";
-    recurringCell.appendChild(badge);
-  }
-
   const actionsCell = document.createElement("td");
   actionsCell.className = "text-end";
 
@@ -308,7 +298,6 @@ function buildExpenseRow(expense) {
   tr.appendChild(categoryCell);
   tr.appendChild(amountCell);
   tr.appendChild(descriptionCell);
-  tr.appendChild(recurringCell);
   tr.appendChild(actionsCell);
 
   return tr;
@@ -333,7 +322,7 @@ window.loadExpenses = async function loadExpenses() {
     supabaseClient
       .from("expenses")
       .select(
-        "id, amount, payment_method, expense_datetime, description, is_recurring, category_id, categories(name)"
+        "id, amount, payment_method, expense_datetime, description, category_id, categories(name)"
       )
       .eq("user_id", user.id)
       .eq("budget_month", viewedMonth)
@@ -358,7 +347,7 @@ window.loadExpenses = async function loadExpenses() {
   if (data.length === 0) {
     const emptyRow = document.createElement("tr");
     emptyRow.innerHTML =
-      '<td colspan="6" class="text-center text-muted">No expenses recorded this month yet.</td>';
+      '<td colspan="5" class="text-center text-muted">No expenses recorded this month yet.</td>';
     tbody.appendChild(emptyRow);
     await window.refreshBalance();
     renderExpenseCalendar();
@@ -869,7 +858,6 @@ async function openEditExpenseModal(expenseId) {
     new Date(expense.expense_datetime)
   );
   document.getElementById("editExpenseDescription").value = expense.description || "";
-  document.getElementById("editExpenseRecurring").checked = expense.is_recurring;
 
   await loadCategories("editExpenseCategory", expense.category_id);
 
@@ -897,7 +885,6 @@ function setupEditExpenseForm() {
     const categoryId = document.getElementById("editExpenseCategory").value;
     const datetimeValue = document.getElementById("editExpenseDatetime").value;
     const description = document.getElementById("editExpenseDescription").value.trim();
-    const isRecurring = document.getElementById("editExpenseRecurring").checked;
 
     if (isNaN(amount) || amount <= 0) {
       showEditExpenseAlert("Amount must be greater than 0.");
@@ -916,7 +903,6 @@ function setupEditExpenseForm() {
         payment_method: paymentMethod || null,
         expense_datetime: new Date(datetimeValue).toISOString(),
         description: description || null,
-        is_recurring: isRecurring,
       })
       .eq("id", id)
       .eq("user_id", user.id);
