@@ -1,0 +1,170 @@
+/* ============================================================
+   expenses.css - Calendar View for the Expenses section
+   ============================================================ */
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.calendar-day {
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.6rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background-color: var(--surface-2);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.calendar-day:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.calendar-day:focus-visible {
+  outline: 3px solid var(--color-blue-bg);
+  outline-offset: 2px;
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.calendar-day-amount {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.calendar-day-today {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px var(--color-blue-bg);
+}
+
+.calendar-day-outside {
+  background-color: transparent;
+  border-color: transparent;
+  cursor: default;
+  opacity: 0.35;
+}
+
+.calendar-day-outside:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Prev/next month day that still has expense data tied to the
+   viewed month (see buildCalendarDayCell) - stays dimmer than a
+   current-month cell, but readable and clickable. */
+.calendar-day-outside.calendar-day-outside-active {
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.calendar-day-outside.calendar-day-outside-active:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.calendar-day-green {
+  background-color: var(--color-green-bg);
+  border-color: var(--color-green);
+}
+.calendar-day-green .calendar-day-amount {
+  color: var(--color-green);
+  font-weight: 600;
+}
+
+.calendar-day-yellow {
+  background-color: var(--color-yellow-bg);
+  border-color: var(--color-yellow);
+}
+.calendar-day-yellow .calendar-day-amount {
+  color: var(--color-yellow);
+  font-weight: 600;
+}
+
+.calendar-day-red {
+  background-color: var(--color-red-bg);
+  border-color: var(--color-red);
+}
+.calendar-day-red .calendar-day-amount {
+  color: var(--color-red);
+  font-weight: 600;
+}
+
+@media (max-width: 575.98px) {
+  .calendar-day {
+    min-height: 62px;
+    padding: 0.4rem;
+  }
+  .calendar-day-number {
+    font-size: 0.78rem;
+  }
+  .calendar-day-amount {
+    font-size: 0.7rem;
+  }
+  .calendar-weekdays {
+    font-size: 0.62rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   Table/Calendar view toggle
+   ------------------------------------------------------------ */
+#expenseViewTableBtn.active,
+#expenseViewCalendarBtn.active {
+  background-color: var(--color-blue);
+  border-color: var(--color-blue);
+  color: #fff;
+}
+
+/* ------------------------------------------------------------
+   Day details modal
+   ------------------------------------------------------------ */
+.day-modal-summary .h4 {
+  font-family: var(--font-heading);
+}
+
+.day-expense-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.day-expense-item + .day-expense-item {
+  border-top: 1px solid var(--border);
+}
+
+.day-expense-item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.day-expense-item-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 0.35rem;
+}

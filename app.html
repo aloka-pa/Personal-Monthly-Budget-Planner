@@ -23,6 +23,7 @@
 
   <!-- Custom styles -->
   <link href="css/styles.css" rel="stylesheet" />
+  <link href="css/pages/expenses.css" rel="stylesheet" />
 </head>
 <body class="app-layout">
 
@@ -241,26 +242,42 @@
     <!-- EXPENSE LIST -->
     <div class="card shadow-sm mb-4">
       <div class="card-body">
-        <h2 id="expenseListTitle" class="h6 text-muted mb-3">Expenses</h2>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <h2 id="expenseListTitle" class="h6 text-muted mb-0">Expenses</h2>
+          <div class="btn-group" role="group" aria-label="Expense view toggle">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="expenseViewTableBtn">Table</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="expenseViewCalendarBtn">Calendar</button>
+          </div>
+        </div>
         <div id="expenseListAlert" class="alert d-none" role="alert"></div>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead>
-              <tr>
-                <th>Date &amp; Time</th>
-                <th>Category</th>
-                <th data-currency-label="Amount ({cur})">Amount (LKR)</th>
-                <th>Description</th>
-                <th>Recurring</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="expenseListBody">
-              <tr>
-                <td colspan="6" class="text-center text-muted">Loading expenses...</td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div id="expenseTableViewWrap">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th>
+                  <th>Category</th>
+                  <th data-currency-label="Amount ({cur})">Amount (LKR)</th>
+                  <th>Description</th>
+                  <th>Recurring</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expenseListBody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Loading expenses...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="expenseCalendarViewWrap" class="d-none">
+          <div class="calendar-weekdays">
+            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+          </div>
+          <div class="calendar-grid" id="expenseCalendarGrid"></div>
         </div>
       </div>
     </div>
@@ -316,6 +333,32 @@
             <button type="submit" class="btn btn-primary">Save Changes</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY EXPENSE MODAL (Calendar View) -->
+  <div class="modal fade" id="dayExpenseModal" tabindex="-1" aria-labelledby="dayExpenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title mb-0" id="dayExpenseModalLabel">Expenses</h5>
+            <p class="text-muted small mb-0" id="dayExpenseModalDate"></p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="day-modal-summary text-center mb-3">
+            <div class="text-muted text-uppercase small">Total Spent</div>
+            <div class="h4 mb-0" id="dayExpenseModalTotal">0.00</div>
+          </div>
+          <div id="dayExpenseModalList"></div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <span class="text-muted small" id="dayExpenseModalCount"></span>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>

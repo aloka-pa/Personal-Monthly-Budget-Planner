@@ -16,6 +16,15 @@
 // without an extra round trip to Supabase.
 const expenseCache = new Map();
 
+// Sum of this month's category budgets (see fetchMonthlyBudgetTotal),
+// used by the Calendar View to color each day by % of budget spent.
+let viewedMonthlyBudgetTotal = 0;
+
+// expenseCache grouped by local "YYYY-MM-DD", rebuilt each time
+// loadExpenses() runs (see renderExpenseCalendar). Shared by the
+// calendar grid and the day-details modal so neither recomputes it.
+let expensesByDayCache = new Map();
+
 const EXPENSE_PAYMENT_METHODS = new Set([
   "Cash",
   "Debit Card",
@@ -320,19 +329,26 @@ window.loadExpenses = async function loadExpenses() {
 
   const viewedMonth = window.getViewedMonthFirstDay();
 
-  const { data, error } = await supabaseClient
-    .from("expenses")
-    .select(
-      "id, amount, payment_method, expense_datetime, description, is_recurring, category_id, categories(name)"
-    )
-    .eq("user_id", user.id)
-    .eq("budget_month", viewedMonth)
-    .order("expense_datetime", { ascending: false });
+  const [expensesResult, monthlyBudgetTotal] = await Promise.all([
+    supabaseClient
+      .from("expenses")
+      .select(
+        "id, amount, payment_method, expense_datetime, description, is_recurring, category_id, categories(name)"
+      )
+      .eq("user_id", user.id)
+      .eq("budget_month", viewedMonth)
+      .order("expense_datetime", { ascending: false }),
+    fetchMonthlyBudgetTotal(user.id, viewedMonth),
+  ]);
+
+  const { data, error } = expensesResult;
 
   if (error) {
     showExpenseListAlert(error.message);
     return;
   }
+
+  viewedMonthlyBudgetTotal = monthlyBudgetTotal;
 
   expenseCache.clear();
   data.forEach((expense) => expenseCache.set(expense.id, expense));
@@ -345,11 +361,15 @@ window.loadExpenses = async function loadExpenses() {
       '<td colspan="6" class="text-center text-muted">No expenses recorded this month yet.</td>';
     tbody.appendChild(emptyRow);
     await window.refreshBalance();
+    renderExpenseCalendar();
+    refreshDayModalIfOpen();
     return;
   }
 
   data.forEach((expense) => tbody.appendChild(buildExpenseRow(expense)));
   await window.refreshBalance();
+  renderExpenseCalendar();
+  refreshDayModalIfOpen();
 }
 
 // ============================================================
@@ -419,6 +439,388 @@ window.refreshBalance = async function refreshBalance() {
 
   balanceCard.classList.add(colorClass, "text-white");
 };
+
+// ============================================================
+// CALENDAR VIEW
+// ============================================================
+//
+// A second presentation of the same expense data loaded by
+// loadExpenses() - no separate fetching, editing, or deleting
+// logic. Day cells are colored by % of the monthly budget spent
+// (sum of this month's category_budgets, mirroring the "Overall
+// Budget" figure on the Budgets page), not by fixed currency
+// thresholds.
+// ============================================================
+
+const EXPENSE_VIEW_STORAGE_KEY = "expenseViewPreference";
+const SPENDING_LEVELS = { LOW: 2, MODERATE: 5 };
+
+function getStoredExpenseView() {
+  return localStorage.getItem(EXPENSE_VIEW_STORAGE_KEY) === "calendar" ? "calendar" : "table";
+}
+
+function applyExpenseView(view) {
+  const tableWrap = document.getElementById("expenseTableViewWrap");
+  const calendarWrap = document.getElementById("expenseCalendarViewWrap");
+  const tableBtn = document.getElementById("expenseViewTableBtn");
+  const calendarBtn = document.getElementById("expenseViewCalendarBtn");
+  if (!tableWrap || !calendarWrap) return;
+
+  const isCalendar = view === "calendar";
+  tableWrap.classList.toggle("d-none", isCalendar);
+  calendarWrap.classList.toggle("d-none", !isCalendar);
+  if (tableBtn) tableBtn.classList.toggle("active", !isCalendar);
+  if (calendarBtn) calendarBtn.classList.toggle("active", isCalendar);
+}
+
+function setupExpenseViewToggle() {
+  const tableBtn = document.getElementById("expenseViewTableBtn");
+  const calendarBtn = document.getElementById("expenseViewCalendarBtn");
+  if (!tableBtn || !calendarBtn) return;
+
+  tableBtn.addEventListener("click", () => {
+    localStorage.setItem(EXPENSE_VIEW_STORAGE_KEY, "table");
+    applyExpenseView("table");
+  });
+  calendarBtn.addEventListener("click", () => {
+    localStorage.setItem(EXPENSE_VIEW_STORAGE_KEY, "calendar");
+    applyExpenseView("calendar");
+  });
+
+  applyExpenseView(getStoredExpenseView());
+}
+
+// Sums this month's category budgets, counting only categories
+// with budget tracking enabled - the same "Overall Budget" figure
+// shown on the Budgets page. Mirrors budgets.js's fallback between
+// the `amount`/`budget_amount` column names.
+async function fetchMonthlyBudgetTotal(userId, monthFirstDay) {
+  const { data: categories, error: categoriesError } = await supabaseClient
+    .from("categories")
+    .select("id, include_in_budget")
+    .or(`user_id.is.null,user_id.eq.${userId}`);
+
+  if (categoriesError) {
+    console.error("Failed to load categories for budget total:", categoriesError.message);
+    return 0;
+  }
+
+  const includedCategoryIds = new Set(
+    categories.filter((category) => category.include_in_budget !== false).map((category) => String(category.id))
+  );
+
+  let budgetRows;
+  const primary = await supabaseClient
+    .from("category_budgets")
+    .select("category_id, amount")
+    .eq("user_id", userId)
+    .eq("month", monthFirstDay);
+
+  if (!primary.error) {
+    budgetRows = primary.data || [];
+  } else {
+    const fallback = await supabaseClient
+      .from("category_budgets")
+      .select("category_id, budget_amount")
+      .eq("user_id", userId)
+      .eq("month", monthFirstDay);
+
+    if (fallback.error) {
+      console.error("Failed to load category budgets for budget total:", fallback.error.message);
+      return 0;
+    }
+
+    budgetRows = (fallback.data || []).map((row) => ({
+      category_id: row.category_id,
+      amount: Number(row.budget_amount),
+    }));
+  }
+
+  return budgetRows
+    .filter((row) => includedCategoryIds.has(String(row.category_id)))
+    .reduce((sum, row) => sum + Number(row.amount), 0);
+}
+
+// Formats a Date as a local "YYYY-MM-DD" key (not UTC), used to
+// group expenses by calendar day.
+function toDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildExpensesByDay() {
+  const map = new Map();
+  expenseCache.forEach((expense) => {
+    const key = toDateKey(new Date(expense.expense_datetime));
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(expense);
+  });
+  return map;
+}
+
+// Returns the calendar-day color class for a day's spending, or
+// null when there's no budget to compare against (or nothing was
+// spent) - callers fall back to the default cell styling.
+function getSpendingColorClass(dailyTotal, monthlyBudget) {
+  if (!monthlyBudget || monthlyBudget <= 0 || dailyTotal <= 0) return null;
+
+  const percent = (dailyTotal / monthlyBudget) * 100;
+  if (percent <= SPENDING_LEVELS.LOW) return "calendar-day-green";
+  if (percent <= SPENDING_LEVELS.MODERATE) return "calendar-day-yellow";
+  return "calendar-day-red";
+}
+
+function buildCalendarDayCell(cellDate, inCurrentMonth, today) {
+  const cell = document.createElement("div");
+  cell.className = "calendar-day";
+
+  const dateKey = toDateKey(cellDate);
+  const dayExpenses = expensesByDayCache.get(dateKey) || [];
+
+  // Prev/next month cells are dimmed either way, but if this
+  // viewed month's expenses include one dated in the adjacent
+  // month (expense_datetime can fall outside its budget_month),
+  // that data is already in expensesByDayCache - show it instead
+  // of leaving the cell blank.
+  const hasData = inCurrentMonth || dayExpenses.length > 0;
+
+  if (!inCurrentMonth) {
+    cell.classList.add("calendar-day-outside");
+    if (hasData) cell.classList.add("calendar-day-outside-active");
+  }
+
+  const dayNumber = document.createElement("div");
+  dayNumber.className = "calendar-day-number";
+  dayNumber.textContent = cellDate.getDate();
+  cell.appendChild(dayNumber);
+
+  if (!hasData) {
+    return cell;
+  }
+
+  const dailyTotal = dayExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+  const colorClass = getSpendingColorClass(dailyTotal, viewedMonthlyBudgetTotal);
+  if (colorClass) cell.classList.add(colorClass);
+
+  if (
+    cellDate.getFullYear() === today.getFullYear() &&
+    cellDate.getMonth() === today.getMonth() &&
+    cellDate.getDate() === today.getDate()
+  ) {
+    cell.classList.add("calendar-day-today");
+  }
+
+  const dayAmount = document.createElement("div");
+  dayAmount.className = "calendar-day-amount";
+  dayAmount.textContent = window.formatCurrency(dailyTotal);
+  cell.appendChild(dayAmount);
+
+  cell.setAttribute("role", "button");
+  cell.setAttribute("tabindex", "0");
+  cell.addEventListener("click", () => openDayExpenseModal(dateKey));
+  cell.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openDayExpenseModal(dateKey);
+    }
+  });
+
+  return cell;
+}
+
+// Rebuilds the calendar grid for the currently viewed month from
+// whatever loadExpenses() just cached - no extra fetch.
+function renderExpenseCalendar() {
+  const grid = document.getElementById("expenseCalendarGrid");
+  if (!grid) return;
+
+  expensesByDayCache = buildExpensesByDay();
+
+  const { start } = window.getViewedMonthRange();
+  const year = start.getFullYear();
+  const month = start.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leadingBlanks = (start.getDay() + 6) % 7; // Monday-first offset
+  const totalCells = Math.ceil((leadingBlanks + daysInMonth) / 7) * 7;
+  const today = new Date();
+
+  grid.innerHTML = "";
+
+  for (let i = 0; i < totalCells; i++) {
+    const cellDate = new Date(year, month, i - leadingBlanks + 1);
+    const inCurrentMonth = cellDate.getMonth() === month;
+    grid.appendChild(buildCalendarDayCell(cellDate, inCurrentMonth, today));
+  }
+}
+
+// ============================================================
+// DAY EXPENSE MODAL (Calendar View)
+// ============================================================
+//
+// Reuses openEditExpenseModal() / deleteExpense() unchanged for
+// CRUD - this section only renders the day's expenses and wires
+// those existing actions to it.
+// ============================================================
+
+// "YYYY-MM-DD" of the day currently shown in the day modal, or
+// null when it's closed. Lets loadExpenses() refresh the modal in
+// place after an edit/delete instead of requiring a page reload.
+let dayModalOpenDate = null;
+// True while we're hiding the day modal specifically to open the
+// edit modal on top of it, so it should reopen once editing ends.
+let reopenDayModalAfterEdit = false;
+
+function formatDayModalDateLabel(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+}
+
+function buildDayExpenseItem(expense) {
+  const item = document.createElement("div");
+  item.className = "day-expense-item";
+
+  const info = document.createElement("div");
+  info.className = "day-expense-item-info";
+
+  const categoryEl = document.createElement("div");
+  categoryEl.className = "fw-semibold";
+  categoryEl.textContent = expense.categories ? expense.categories.name : "-";
+
+  const descriptionEl = document.createElement("div");
+  descriptionEl.className = "text-muted small";
+  descriptionEl.textContent = expense.description || expense.payment_method || "-";
+
+  info.appendChild(categoryEl);
+  info.appendChild(descriptionEl);
+
+  const actions = document.createElement("div");
+  actions.className = "day-expense-item-actions";
+
+  const amountEl = document.createElement("div");
+  amountEl.className = "fw-semibold mb-1";
+  amountEl.textContent = window.formatCurrency(expense.amount);
+
+  const buttonsRow = document.createElement("div");
+  buttonsRow.className = "day-expense-item-buttons";
+
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "btn btn-sm btn-outline-secondary";
+  editBtn.setAttribute("aria-label", "Edit expense");
+  editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+  editBtn.addEventListener("click", () => openEditFromDayModal(expense.id));
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "btn btn-sm btn-outline-danger";
+  deleteBtn.setAttribute("aria-label", "Delete expense");
+  deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+  deleteBtn.addEventListener("click", () => deleteExpense(expense.id));
+
+  buttonsRow.appendChild(editBtn);
+  buttonsRow.appendChild(deleteBtn);
+
+  actions.appendChild(amountEl);
+  actions.appendChild(buttonsRow);
+
+  item.appendChild(info);
+  item.appendChild(actions);
+  return item;
+}
+
+function renderDayModalContent(dateKey) {
+  const dateLabelEl = document.getElementById("dayExpenseModalDate");
+  const totalEl = document.getElementById("dayExpenseModalTotal");
+  const listEl = document.getElementById("dayExpenseModalList");
+  const countEl = document.getElementById("dayExpenseModalCount");
+  if (!dateLabelEl || !totalEl || !listEl || !countEl) return;
+
+  const dayExpenses = expensesByDayCache.get(dateKey) || [];
+  const total = dayExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+  dateLabelEl.textContent = formatDayModalDateLabel(dateKey);
+  totalEl.textContent = window.formatCurrency(total);
+  listEl.innerHTML = "";
+
+  if (dayExpenses.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "text-muted text-center mb-0";
+    empty.textContent = "No expenses recorded for this day.";
+    listEl.appendChild(empty);
+    countEl.textContent = "";
+    return;
+  }
+
+  dayExpenses.forEach((expense) => listEl.appendChild(buildDayExpenseItem(expense)));
+  countEl.textContent = `${dayExpenses.length} Transaction${dayExpenses.length === 1 ? "" : "s"}`;
+}
+
+function openDayExpenseModal(dateKey) {
+  dayModalOpenDate = dateKey;
+  renderDayModalContent(dateKey);
+  const modal = new bootstrap.Modal(document.getElementById("dayExpenseModal"));
+  modal.show();
+}
+
+// Hides the day modal, then opens the existing edit-expense modal
+// on top of it (never both showing at once - avoids Bootstrap's
+// stacked-modal backdrop quirks).
+function openEditFromDayModal(expenseId) {
+  reopenDayModalAfterEdit = true;
+  const dayModalEl = document.getElementById("dayExpenseModal");
+  const instance = bootstrap.Modal.getInstance(dayModalEl);
+  const openEdit = () => openEditExpenseModal(expenseId);
+
+  if (instance) {
+    dayModalEl.addEventListener("hidden.bs.modal", openEdit, { once: true });
+    instance.hide();
+  } else {
+    openEdit();
+  }
+}
+
+// Called at the end of loadExpenses() so a delete triggered from
+// the day modal (which stays open through the native confirm())
+// re-renders in place instead of showing stale data.
+function refreshDayModalIfOpen() {
+  if (!dayModalOpenDate) return;
+  const dayModalEl = document.getElementById("dayExpenseModal");
+  if (dayModalEl && dayModalEl.classList.contains("show")) {
+    renderDayModalContent(dayModalOpenDate);
+  }
+}
+
+function setupDayExpenseModal() {
+  const dayModalEl = document.getElementById("dayExpenseModal");
+  const editModalEl = document.getElementById("editExpenseModal");
+  if (!dayModalEl) return;
+
+  // Closed normally (not on the way to the edit modal) - forget it.
+  dayModalEl.addEventListener("hidden.bs.modal", () => {
+    if (!reopenDayModalAfterEdit) {
+      dayModalOpenDate = null;
+    }
+  });
+
+  // Edit modal closed (Cancel or after a successful save, which
+  // already refreshed expensesByDayCache via loadExpenses) - bring
+  // the day modal back with current data.
+  if (editModalEl) {
+    editModalEl.addEventListener("hidden.bs.modal", () => {
+      if (reopenDayModalAfterEdit && dayModalOpenDate) {
+        reopenDayModalAfterEdit = false;
+        renderDayModalContent(dayModalOpenDate);
+        new bootstrap.Modal(dayModalEl).show();
+      } else {
+        reopenDayModalAfterEdit = false;
+      }
+    });
+  }
+}
 
 // Formats a Date as "YYYY-MM-DDTHH:mm" for a datetime-local input.
 function toDatetimeLocalValue(date) {
@@ -565,6 +967,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAddCategory();
   setupExpenseForm();
   setDefaultExpenseDatetime();
+  setupExpenseViewToggle();
+  setupDayExpenseModal();
 
   loadExpenses();
   setupEditExpenseForm();
