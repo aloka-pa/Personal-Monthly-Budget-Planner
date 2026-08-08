@@ -224,15 +224,6 @@
           </div>
 
           <div class="col-12">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="expenseRecurring" />
-              <label class="form-check-label" for="expenseRecurring">
-                This is a recurring expense
-              </label>
-            </div>
-          </div>
-
-          <div class="col-12">
             <button type="submit" class="btn btn-primary">Add Expense</button>
           </div>
         </form>
@@ -260,13 +251,12 @@
                   <th>Category</th>
                   <th data-currency-label="Amount ({cur})">Amount (LKR)</th>
                   <th>Description</th>
-                  <th>Recurring</th>
                   <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody id="expenseListBody">
                 <tr>
-                  <td colspan="6" class="text-center text-muted">Loading expenses...</td>
+                  <td colspan="5" class="text-center text-muted">Loading expenses...</td>
                 </tr>
               </tbody>
             </table>
@@ -322,10 +312,6 @@
             <div class="mb-3">
               <label for="editExpenseDescription" class="form-label">Description (optional)</label>
               <textarea class="form-control" id="editExpenseDescription" rows="2" maxlength="500"></textarea>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="editExpenseRecurring" />
-              <label class="form-check-label" for="editExpenseRecurring">This is a recurring expense</label>
             </div>
           </div>
           <div class="modal-footer">
