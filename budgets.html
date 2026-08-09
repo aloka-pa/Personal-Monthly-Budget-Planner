@@ -41,14 +41,16 @@
       <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-graph-up-arrow"></i><span class="sidebar-link-label">Reports</span><span class="coming-soon">Soon</span></a>
       <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-gear"></i><span class="sidebar-link-label">Settings</span><span class="coming-soon">Soon</span></a>
     </nav>
+    <div class="sidebar-footer">
+      <button type="button" class="sidebar-link" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars" data-theme-icon></i><span class="sidebar-link-label" data-theme-label>Dark mode</span></button>
+      <button type="button" class="sidebar-link" id="logoutBtn"><i class="bi bi-box-arrow-right"></i><span class="sidebar-link-label">Logout</span></button>
+    </div>
   </aside>
   <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
   <header class="top-header app-main">
     <div class="container-fluid app-shell d-flex align-items-center gap-3">
       <button class="header-action d-lg-none" id="mobileMenuToggle" type="button" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false"><i class="bi bi-list"></i></button>
       <div class="me-auto"><h1 class="page-heading">Budgets</h1><p class="page-description">Plan and manage monthly category spending.</p></div>
-      <button type="button" class="header-action" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
-      <button id="logoutBtn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-right me-sm-2"></i><span class="d-none d-sm-inline">Logout</span></button>
     </div>
   </header>
 
@@ -101,14 +103,18 @@
       <div class="card-body">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
           <h2 class="h6 text-muted mb-0">Category Budgets</h2>
-          <div class="w-100 w-lg-auto" style="max-width: 360px;">
+          <div class="d-flex flex-column flex-sm-row align-items-end align-items-sm-stretch justify-content-end gap-2 ms-auto">
             <input
               type="search"
               class="form-control"
               id="budgetSearchInput"
               placeholder="Search categories..."
               aria-label="Search categories"
+              style="width: 300px; max-width: 100%;"
             />
+            <button type="button" class="btn btn-outline-primary text-nowrap" id="copyPreviousBudgetBtn" disabled>
+              Copy Previous Budget
+            </button>
           </div>
         </div>
 

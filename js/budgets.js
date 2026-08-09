@@ -7,15 +7,31 @@ let budgetAmountColumn = "amount";
 
 const budgetState = {
   rows: [],
+  previousMonthBudgetRows: [],
   sortKey: "category",
   sortDirection: "asc",
   searchTerm: "",
 };
 
-function getViewedMonthFirstDay() {
-  const year = viewedMonthDate.getFullYear();
-  const month = String(viewedMonthDate.getMonth() + 1).padStart(2, "0");
+function getMonthFirstDay(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}-01`;
+}
+
+function getViewedMonthFirstDay() {
+  return getMonthFirstDay(viewedMonthDate);
+}
+
+function getPreviousMonthDate() {
+  return new Date(viewedMonthDate.getFullYear(), viewedMonthDate.getMonth() - 1, 1);
+}
+
+function formatMonthYear(date) {
+  return date.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
 }
 
 function showBudgetsAlert(message, type = "danger") {
@@ -92,13 +108,26 @@ function getUsageMeta(budgetAmount, spentAmount) {
 }
 
 function renderMonthNavigator() {
-  const label = viewedMonthDate.toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-  });
-
   const labelEl = document.getElementById("viewedMonthLabel");
-  if (labelEl) labelEl.textContent = label;
+  if (labelEl) labelEl.textContent = formatMonthYear(viewedMonthDate);
+
+  const copyBtn = document.getElementById("copyPreviousBudgetBtn");
+  if (copyBtn) {
+    const previousMonthName = getPreviousMonthDate().toLocaleDateString(undefined, {
+      month: "long",
+    });
+    copyBtn.textContent = `Copy ${previousMonthName} Budget`;
+  }
+}
+
+function updateCopyPreviousBudgetButton(isLoading = false) {
+  const copyBtn = document.getElementById("copyPreviousBudgetBtn");
+  if (!copyBtn) return;
+
+  copyBtn.disabled = isLoading || budgetState.previousMonthBudgetRows.length === 0;
+  copyBtn.title = budgetState.previousMonthBudgetRows.length === 0 && !isLoading
+    ? `${formatMonthYear(getPreviousMonthDate())} has no category budgets to copy.`
+    : "";
 }
 
 function setupMonthNavigator() {
@@ -428,6 +457,66 @@ async function saveBudgetAmount(categoryId, amount) {
   if (insertResult.error) throw insertResult.error;
 }
 
+async function copyPreviousMonthBudgets() {
+  const copyBtn = document.getElementById("copyPreviousBudgetBtn");
+  if (!copyBtn || budgetState.previousMonthBudgetRows.length === 0) return;
+
+  const previousMonthLabel = formatMonthYear(getPreviousMonthDate());
+  const currentMonthLabel = formatMonthYear(viewedMonthDate);
+  const confirmed = window.confirm(
+    `Copy ${previousMonthLabel} budgets into ${currentMonthLabel}?\n\n` +
+    "Existing categories will be updated.\n" +
+    "New categories will be created.\n" +
+    "Other categories will remain unchanged."
+  );
+  if (!confirmed) return;
+
+  const {
+    data: { user },
+  } = await supabaseClient.auth.getUser();
+  if (!user) return;
+
+  copyBtn.disabled = true;
+  const originalText = copyBtn.textContent;
+  copyBtn.textContent = "Copying...";
+
+  try {
+    const targetMonth = getViewedMonthFirstDay();
+    const payload = budgetState.previousMonthBudgetRows.map((row) => ({
+      user_id: user.id,
+      category_id: row.category_id,
+      month: targetMonth,
+      [budgetAmountColumn]: Number(row.amount),
+    }));
+
+    let result = await supabaseClient
+      .from("category_budgets")
+      .upsert(payload, { onConflict: "user_id,category_id,month" });
+
+    if (result.error) {
+      result = await supabaseClient
+        .from("category_budgets")
+        .upsert(payload, { onConflict: "user_id,month,category_id" });
+    }
+
+    if (result.error) throw result.error;
+
+    await loadBudgetPageData();
+    showBudgetsAlert(`${previousMonthLabel} budgets copied into ${currentMonthLabel}.`, "success");
+  } catch (error) {
+    showBudgetsAlert(error.message || "Failed to copy the previous month's budgets.");
+  } finally {
+    copyBtn.textContent = originalText;
+    updateCopyPreviousBudgetButton();
+  }
+}
+
+function setupCopyPreviousBudget() {
+  const copyBtn = document.getElementById("copyPreviousBudgetBtn");
+  if (!copyBtn) return;
+  copyBtn.addEventListener("click", copyPreviousMonthBudgets);
+}
+
 function setupEditBudgetForm() {
   const form = document.getElementById("editBudgetForm");
   if (!form) return;
@@ -497,19 +586,26 @@ async function loadBudgetPageData() {
   await window.getUserCurrency();
 
   const monthFirstDay = getViewedMonthFirstDay();
+  const previousMonthFirstDay = getMonthFirstDay(getPreviousMonthDate());
+  updateCopyPreviousBudgetButton(true);
 
   try {
-    const [categories, expenses, budgetRows] = await Promise.all([
+    const [categories, expenses, budgetRows, previousMonthBudgetRows] = await Promise.all([
       fetchCategories(user.id),
       fetchExpensesForMonth(user.id, monthFirstDay),
       fetchCategoryBudgetsForMonth(user.id, monthFirstDay),
+      fetchCategoryBudgetsForMonth(user.id, previousMonthFirstDay),
     ]);
 
     budgetState.rows = buildBudgetRows(categories, expenses, budgetRows);
+    budgetState.previousMonthBudgetRows = previousMonthBudgetRows;
 
     renderOverviewCards(budgetState.rows);
     renderTable();
+    updateCopyPreviousBudgetButton();
   } catch (error) {
+    budgetState.previousMonthBudgetRows = [];
+    updateCopyPreviousBudgetButton();
     showBudgetsAlert(error.message || "Failed to load budget data.");
   }
 }
@@ -521,6 +617,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupSearch();
   setupSorting();
   setupEditBudgetForm();
+  setupCopyPreviousBudget();
 
   await loadBudgetPageData();
 });
