@@ -35,6 +35,10 @@
       <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-graph-up-arrow"></i><span class="sidebar-link-label">Reports</span><span class="coming-soon">Soon</span></a>
       <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-gear"></i><span class="sidebar-link-label">Settings</span><span class="coming-soon">Soon</span></a>
     </nav>
+    <div class="sidebar-footer">
+      <button type="button" class="sidebar-link" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars" data-theme-icon></i><span class="sidebar-link-label" data-theme-label>Dark mode</span></button>
+      <button type="button" class="sidebar-link" id="logoutBtn"><i class="bi bi-box-arrow-right"></i><span class="sidebar-link-label">Logout</span></button>
+    </div>
   </aside>
   <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 
@@ -42,8 +46,6 @@
     <div class="container-fluid app-shell d-flex align-items-center gap-3">
       <button class="header-action d-lg-none" id="mobileMenuToggle" type="button" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false"><i class="bi bi-list"></i></button>
       <div class="me-auto"><h1 class="page-heading">Financial Goals</h1><p class="page-description">Build and track progress toward your long-term savings goals.</p></div>
-      <button type="button" class="header-action" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars"></i></button>
-      <button id="logoutBtn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-box-arrow-right me-sm-2"></i><span class="d-none d-sm-inline">Logout</span></button>
     </div>
   </header>
 
