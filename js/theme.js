@@ -14,6 +14,18 @@ function applyTheme(theme) {
 
   // Update every toggle button on the page.
   document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
+    const themeIcon = btn.querySelector("[data-theme-icon]");
+    const themeLabel = btn.querySelector("[data-theme-label]");
+
+    if (themeIcon && themeLabel) {
+      const switchLabel = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+      themeIcon.className = `bi ${theme === "dark" ? "bi-sun" : "bi-moon-stars"}`;
+      themeLabel.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+      btn.setAttribute("title", switchLabel);
+      btn.setAttribute("aria-label", switchLabel);
+      return;
+    }
+
     btn.textContent = theme === "dark" ? "☀️" : "🌙";
     btn.setAttribute(
       "title",
