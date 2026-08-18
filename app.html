@@ -27,31 +27,7 @@
 </head>
 <body class="app-layout">
 
-  <aside class="app-sidebar" id="appSidebar" aria-label="Primary navigation">
-    <div class="sidebar-header">
-      <span class="brand-mark" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
-      <div class="brand-copy"><span class="brand-title">Wallet Check</span><span class="brand-subtitle">Personal Finance Platform</span></div>
-      <button class="sidebar-control ms-auto d-none d-lg-inline-flex" id="sidebarToggle" type="button" aria-label="Collapse sidebar" aria-expanded="true"><i class="bi bi-list"></i></button>
-      <button class="sidebar-control ms-auto d-lg-none" id="sidebarClose" type="button" aria-label="Close navigation"><i class="bi bi-x-lg"></i></button>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Workspace</div>
-      <a class="sidebar-link active" href="app.html" aria-current="page"><i class="bi bi-house-door"></i><span class="sidebar-link-label">Home</span></a>
-      <a class="sidebar-link" href="dashboard.html"><i class="bi bi-bar-chart"></i><span class="sidebar-link-label">Dashboard</span></a>
-      <a class="sidebar-link" href="budgets.html"><i class="bi bi-cash-stack"></i><span class="sidebar-link-label">Budgets</span></a>
-      <a class="sidebar-link" href="financial-goals.html"><i class="bi bi-bullseye"></i><span class="sidebar-link-label">Financial Goals</span></a>
-      <a class="sidebar-link" href="financial-planner.html"><i class="bi bi-calendar2-check"></i><span class="sidebar-link-label">Financial Planner</span></a>
-      <div class="sidebar-section-label mt-4">Explore</div>
-      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-receipt"></i><span class="sidebar-link-label">Payments</span><span class="coming-soon">Soon</span></a>
-      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-graph-up-arrow"></i><span class="sidebar-link-label">Reports</span><span class="coming-soon">Soon</span></a>
-      <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-gear"></i><span class="sidebar-link-label">Settings</span><span class="coming-soon">Soon</span></a>
-    </nav>
-    <div class="sidebar-footer">
-      <button type="button" class="sidebar-link" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars" data-theme-icon></i><span class="sidebar-link-label" data-theme-label>Dark mode</span></button>
-      <button type="button" class="sidebar-link" id="logoutBtn"><i class="bi bi-box-arrow-right"></i><span class="sidebar-link-label">Logout</span></button>
-    </div>
-  </aside>
-  <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+  <div id="sidebarMount"></div>
   <header class="top-header app-main">
     <div class="container-fluid app-shell d-flex align-items-center gap-3">
       <button class="header-action d-lg-none" id="mobileMenuToggle" type="button" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false"><i class="bi bi-list"></i></button>
@@ -392,6 +368,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- App config + client + logic -->
+  <script src="js/sidebar.js"></script>
   <script src="config.js"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/auth.js"></script>
