@@ -25,6 +25,7 @@ const AUTH_PAGES = {
   BUDGETS: "budgets.html",
   DASHBOARD: "dashboard.html",
   GOALS: "financial-goals.html",
+  PLANNER: "financial-planner.html",
   PAYMENTS: "payments.html",
 };
 
@@ -38,6 +39,7 @@ function getCurrentPage() {
   if (path.endsWith(AUTH_PAGES.BUDGETS)) return AUTH_PAGES.BUDGETS;
   if (path.endsWith(AUTH_PAGES.DASHBOARD)) return AUTH_PAGES.DASHBOARD;
   if (path.endsWith(AUTH_PAGES.GOALS)) return AUTH_PAGES.GOALS;
+  if (path.endsWith(AUTH_PAGES.PLANNER)) return AUTH_PAGES.PLANNER;
   if (path.endsWith(AUTH_PAGES.PAYMENTS)) return AUTH_PAGES.PAYMENTS;
   return AUTH_PAGES.LOGIN;
 }
@@ -54,6 +56,7 @@ async function guardPageWithSession() {
     currentPage === AUTH_PAGES.BUDGETS ||
     currentPage === AUTH_PAGES.DASHBOARD ||
     currentPage === AUTH_PAGES.GOALS ||
+    currentPage === AUTH_PAGES.PLANNER ||
     currentPage === AUTH_PAGES.PAYMENTS;
 
   if (session && currentPage === AUTH_PAGES.LOGIN) {

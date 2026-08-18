@@ -1,0 +1,200 @@
+/* ------------------------------------------------------------
+   Financial Planner
+   ------------------------------------------------------------ */
+.planner-summary-icon {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  border-radius: 0.65rem;
+}
+
+.planner-summary-icon.confirmed { color: var(--color-green); background: var(--color-green-bg); }
+.planner-summary-icon.tentative { color: var(--color-yellow); background: var(--color-yellow-bg); }
+.planner-summary-icon.completed { color: var(--color-blue); background: var(--color-blue-bg); }
+.planner-summary-icon.cancelled { color: var(--color-red); background: var(--color-red-bg); }
+
+.planner-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.planner-status-confirmed { color: var(--color-green); background: var(--color-green-bg); }
+.planner-status-tentative { color: var(--color-yellow); background: var(--color-yellow-bg); }
+.planner-status-completed { color: var(--color-blue); background: var(--color-blue-bg); }
+.planner-status-cancelled { color: var(--color-red); background: var(--color-red-bg); }
+
+.planner-filter-control {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.planner-filter-control label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.planner-filters .form-select {
+  min-width: 11rem;
+}
+
+.planner-table {
+  table-layout: fixed;
+  min-width: 850px;
+  font-size: 0.875rem;
+}
+
+.planner-table-wrap {
+  overflow-x: auto;
+}
+
+.planner-table * {
+  font-size: inherit;
+  font-weight: 400 !important;
+}
+
+.planner-col-expense { width: 33.3333%; }
+.planner-col-category { width: 13.3333%; }
+.planner-col-status { width: 13.3333%; }
+.planner-col-amount { width: 20%; }
+.planner-col-actions { width: 20%; }
+
+.planner-table > :not(caption) > * > * {
+  padding-right: 0.55rem;
+  padding-left: 0.55rem;
+  border-color: var(--border);
+}
+
+.planner-table tbody tr:last-child > * {
+  border-bottom-width: 0;
+}
+
+.planner-table tfoot > tr > * {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 0;
+}
+
+.planner-expense-title {
+  overflow-wrap: anywhere;
+}
+
+.planner-table td {
+  overflow-wrap: anywhere;
+}
+
+.planner-actions {
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .planner-filters,
+  .planner-filters .form-select {
+    width: 100%;
+  }
+
+  .planner-filter-control {
+    width: 100%;
+  }
+
+  .planner-filter-control label {
+    min-width: 4.5rem;
+  }
+
+  .planner-table,
+  .planner-table tbody,
+  .planner-table tfoot,
+  .planner-table tr,
+  .planner-table td,
+  .planner-table th {
+    display: block;
+    width: 100%;
+  }
+
+  .planner-table {
+    min-width: 0;
+  }
+
+  .planner-table thead {
+    display: none;
+  }
+
+  .planner-table tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.45rem 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .planner-table tbody td {
+    padding: 0;
+    border: 0;
+    text-align: left !important;
+  }
+
+  .planner-table tbody td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.1rem;
+    color: var(--text-muted);
+    font-size: inherit;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .planner-table tbody td:first-child,
+  .planner-table tbody td:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .planner-table tbody td:first-child::before {
+    display: none;
+  }
+
+  .planner-table tbody .planner-actions {
+    position: static;
+    grid-column: 1 / -1;
+    width: 100%;
+    padding-top: 0.25rem;
+    text-align: right !important;
+  }
+
+  .planner-table tbody .planner-actions::before {
+    display: none;
+  }
+
+  .planner-table tfoot tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    padding-top: 0.9rem;
+  }
+
+  .planner-table tfoot th {
+    padding: 0;
+    border: 0;
+  }
+
+  .planner-table tfoot th:first-child {
+    grid-column: 1;
+    text-align: left !important;
+  }
+
+  .planner-table tfoot th:nth-child(2) {
+    grid-column: 2;
+  }
+
+  .planner-table tfoot th:last-child {
+    display: none;
+  }
+}
