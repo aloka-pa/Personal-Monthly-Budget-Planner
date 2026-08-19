@@ -47,12 +47,11 @@
         <h2 class="h6 text-muted mb-3" id="addPlannedExpenseTitle">Add Planned Expense</h2>
         <div id="plannerFormAlert" class="alert d-none" role="alert"></div>
         <form id="plannedExpenseForm" class="row g-3">
-          <div class="col-12 col-lg-4"><label class="form-label" for="plannedTitle">Title</label><input class="form-control" id="plannedTitle" maxlength="200" required /></div>
-          <div class="col-12 col-sm-6 col-lg-2"><label class="form-label" for="plannedAmount" data-currency-label="Estimated Amount ({cur})">Estimated Amount (LKR)</label><input class="form-control" id="plannedAmount" type="number" min="0" step="0.01" required /></div>
-          <div class="col-12 col-sm-6 col-lg-3"><label class="form-label" for="plannedCategory">Category <span class="text-muted">(optional)</span></label><select class="form-select" id="plannedCategory"><option value="">Loading categories...</option></select></div>
-          <div class="col-12 col-lg-3"><label class="form-label" for="plannedStatus">Status</label><select class="form-select" id="plannedStatus" required><option value="tentative">Tentative</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
-          <div class="col-12"><label class="form-label" for="plannedNotes">Notes <span class="text-muted">(optional)</span></label><textarea class="form-control" id="plannedNotes" rows="2"></textarea></div>
-          <div class="col-12"><button class="btn btn-primary" id="addPlannedExpenseBtn" type="submit"><i class="bi bi-plus-lg me-2"></i>Add Planned Expense</button></div>
+          <div class="col-12 col-md-4"><label class="form-label" for="plannedAmount" data-currency-label="Amount ({cur})">Amount (LKR)</label><input class="form-control" id="plannedAmount" type="number" min="0.01" step="0.01" required /></div>
+          <div class="col-12 col-md-4"><label class="form-label" for="plannedCategory">Category</label><select class="form-select" id="plannedCategory" required><option value="" disabled selected>Loading categories...</option></select></div>
+          <div class="col-12 col-md-4"><label class="form-label" for="plannedStatus">Status</label><select class="form-select" id="plannedStatus" required><option value="tentative">Tentative</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
+          <div class="col-12"><label class="form-label" for="plannedDescription">Description</label><textarea class="form-control" id="plannedDescription" rows="2" maxlength="200" required></textarea></div>
+          <div class="col-12"><button class="btn btn-primary" id="addPlannedExpenseBtn" type="submit">Add Planned Expense</button></div>
         </form>
       </div>
     </section>
@@ -70,10 +69,10 @@
         <div id="plannerLoading" class="text-center text-muted py-5"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Loading planned expenses...</div>
         <div id="plannerTableWrap" class="planner-table-wrap d-none">
           <table class="table planner-table align-middle mb-0">
-            <colgroup><col class="planner-col-expense" /><col class="planner-col-category" /><col class="planner-col-status" /><col class="planner-col-amount" /><col class="planner-col-actions" /></colgroup>
-            <thead><tr><th>Expense</th><th>Category</th><th>Status</th><th class="text-end">Amount</th><th class="text-end">Actions</th></tr></thead>
+            <colgroup><col class="planner-col-description" /><col class="planner-col-category" /><col class="planner-col-amount" /><col class="planner-col-status" /><col class="planner-col-actions" /></colgroup>
+            <thead><tr><th>Description</th><th>Category</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="plannerTableBody"></tbody>
-            <tfoot><tr><th colspan="3" class="text-end">Total</th><th class="text-end" id="plannerFilteredTotal">LKR 0.00</th><th aria-hidden="true"></th></tr></tfoot>
+            <tfoot><tr><th colspan="2">Total</th><th id="plannerFilteredTotal">LKR 0.00</th><th colspan="2" aria-hidden="true"></th></tr></tfoot>
           </table>
         </div>
         <div id="plannerEmpty" class="empty-state d-none flex-column align-items-center justify-content-center text-center p-5">
@@ -91,11 +90,10 @@
         <div class="modal-header"><h2 class="modal-title fs-5" id="editPlannedExpenseTitle">Edit Planned Expense</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
         <div class="modal-body">
           <div id="editPlannerAlert" class="alert d-none" role="alert"></div><input id="editPlannedId" type="hidden" />
-          <div class="mb-3"><label class="form-label" for="editPlannedTitle">Title</label><input class="form-control" id="editPlannedTitle" maxlength="200" required /></div>
-          <div class="mb-3"><label class="form-label" for="editPlannedAmount" data-currency-label="Estimated Amount ({cur})">Estimated Amount (LKR)</label><input class="form-control" id="editPlannedAmount" type="number" min="0" step="0.01" required /></div>
-          <div class="mb-3"><label class="form-label" for="editPlannedCategory">Category <span class="text-muted">(optional)</span></label><select class="form-select" id="editPlannedCategory"></select></div>
+          <div class="mb-3"><label class="form-label" for="editPlannedAmount" data-currency-label="Amount ({cur})">Amount (LKR)</label><input class="form-control" id="editPlannedAmount" type="number" min="0.01" step="0.01" required /></div>
+          <div class="mb-3"><label class="form-label" for="editPlannedCategory">Category</label><select class="form-select" id="editPlannedCategory" required></select></div>
           <div class="mb-3"><label class="form-label" for="editPlannedStatus">Status</label><select class="form-select" id="editPlannedStatus" required><option value="tentative">Tentative</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></div>
-          <div><label class="form-label" for="editPlannedNotes">Notes <span class="text-muted">(optional)</span></label><textarea class="form-control" id="editPlannedNotes" rows="3"></textarea></div>
+          <div><label class="form-label" for="editPlannedDescription">Description</label><textarea class="form-control" id="editPlannedDescription" rows="2" maxlength="200" required></textarea></div>
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Save Changes</button></div>
       </form>

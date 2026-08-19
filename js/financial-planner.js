@@ -47,7 +47,8 @@
     select.innerHTML = "";
     const empty = document.createElement("option");
     empty.value = "";
-    empty.textContent = "No category";
+    empty.textContent = "Select a category";
+    empty.disabled = true;
     select.appendChild(empty);
     state.categories.forEach((category) => {
       const option = document.createElement("option");
@@ -111,35 +112,32 @@
     const row = document.createElement("tr");
     row.dataset.plannedId = item.id;
 
-    const expenseCell = document.createElement("td");
-    expenseCell.dataset.label = "Expense";
-    const title = document.createElement("div");
-    title.className = "planner-expense-title mb-0";
-    title.textContent = item.title;
-    expenseCell.appendChild(title);
+    const descriptionCell = document.createElement("td");
+    descriptionCell.dataset.label = "Description";
+    descriptionCell.className = "planner-description";
+    descriptionCell.textContent = item.title;
 
     const categoryCell = document.createElement("td");
     categoryCell.dataset.label = "Category";
     categoryCell.textContent = categoryName || "Uncategorized";
 
-    const statusCell = document.createElement("td");
-    statusCell.dataset.label = "Status";
-    const badge = document.createElement("span");
-    badge.className = `planner-status planner-status-${item.status}`;
-    badge.textContent = statusLabels[item.status];
-    statusCell.appendChild(badge);
-
     const amountCell = document.createElement("td");
-    amountCell.className = "text-end";
     amountCell.dataset.label = "Amount";
     amountCell.textContent = window.formatCurrency(item.estimated_amount);
 
-    const actionsCell = document.createElement("td");
-    actionsCell.className = "planner-actions text-end";
-    actionsCell.dataset.label = "Actions";
-    actionsCell.innerHTML = '<div class="d-inline-flex gap-1"><button class="btn btn-sm btn-outline-secondary" type="button" data-action="edit"><i class="bi bi-pencil me-1" aria-hidden="true"></i>Edit</button><button class="btn btn-sm btn-outline-danger" type="button" data-action="delete"><i class="bi bi-trash me-1" aria-hidden="true"></i>Delete</button></div>';
+    const statusCell = document.createElement("td");
+    statusCell.dataset.label = "Status";
+    const statusChip = document.createElement("span");
+    statusChip.className = `planner-status planner-status-${item.status}`;
+    statusChip.textContent = statusLabels[item.status] || item.status;
+    statusCell.appendChild(statusChip);
 
-    row.append(expenseCell, categoryCell, statusCell, amountCell, actionsCell);
+    const actionsCell = document.createElement("td");
+    actionsCell.className = "planner-actions";
+    actionsCell.dataset.label = "Actions";
+    actionsCell.innerHTML = '<button class="btn btn-sm btn-outline-secondary me-2" type="button" data-action="edit">Edit</button><button class="btn btn-sm btn-outline-danger" type="button" data-action="delete">Delete</button>';
+
+    row.append(descriptionCell, categoryCell, amountCell, statusCell, actionsCell);
     return row;
   }
 
@@ -194,17 +192,16 @@
     const field = (name) => byId(prefix
       ? `${prefix}${name.charAt(0).toUpperCase()}${name.slice(1)}`
       : name);
-    const title = field("plannedTitle").value.trim();
+    const description = field("plannedDescription").value.trim();
     const amountValue = field("plannedAmount").value;
     const amount = Number(amountValue);
     const categoryId = field("plannedCategory").value;
     const status = field("plannedStatus").value;
-    const notes = field("plannedNotes").value.trim();
-    if (!title) return { error: "Title is required." };
-    if (amountValue === "" || !Number.isFinite(amount) || amount < 0) return { error: "Estimated amount must be zero or greater." };
+    if (!description) return { error: "Description is required." };
+    if (amountValue === "" || !Number.isFinite(amount) || amount < 0.01) return { error: "Amount must be greater than zero." };
     if (!statusOrder.includes(status)) return { error: "Choose a valid status." };
-    if (categoryId && !state.categories.some((category) => String(category.id) === categoryId)) return { error: "Choose a valid category." };
-    return { payload: { title, estimated_amount: amount, category_id: categoryId || null, status, notes: notes || null } };
+    if (!categoryId || !state.categories.some((category) => String(category.id) === categoryId)) return { error: "Choose a valid category." };
+    return { payload: { title: description, estimated_amount: amount, category_id: categoryId, status } };
   }
 
   async function createPlannedExpense(event) {
@@ -228,11 +225,10 @@
   function openEditModal(item) {
     hideAlert("editPlannerAlert");
     byId("editPlannedId").value = item.id;
-    byId("editPlannedTitle").value = item.title;
     byId("editPlannedAmount").value = item.estimated_amount;
     populateCategorySelect("editPlannedCategory", item.category_id);
     byId("editPlannedStatus").value = item.status;
-    byId("editPlannedNotes").value = item.notes || "";
+    byId("editPlannedDescription").value = item.title;
     bootstrap.Modal.getOrCreateInstance(byId("editPlannedExpenseModal")).show();
   }
 
