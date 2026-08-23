@@ -1,0 +1,210 @@
+.calculator-layer,
+.calculator-backdrop {
+  position: fixed;
+  inset: 0;
+}
+
+.calculator-layer {
+  z-index: 1080;
+}
+
+.calculator-layer[hidden] {
+  display: none;
+}
+
+.calculator-backdrop {
+  background: transparent;
+}
+
+.calculator-panel {
+  position: absolute;
+  top: 84px;
+  right: 1.5rem;
+  width: min(350px, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow), 0 18px 48px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  transform: translateY(-0.4rem) scale(0.985);
+  transform-origin: top right;
+  transition: opacity 160ms ease, transform 160ms ease, background-color 0.2s ease,
+    border-color 0.2s ease, color 0.2s ease;
+}
+
+.calculator-layer.is-open .calculator-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.calculator-panel:focus {
+  outline: none;
+}
+
+.calculator-heading,
+.calculator-heading-actions {
+  display: flex;
+  align-items: center;
+}
+
+.calculator-heading {
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.calculator-heading h2 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.calculator-heading-actions {
+  gap: 0.25rem;
+}
+
+.calculator-icon-button {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.calculator-icon-button:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.calculator-display {
+  min-width: 0;
+  margin-bottom: 0.85rem;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--input-bg);
+  text-align: right;
+  overflow: hidden;
+}
+
+.calculator-expression {
+  min-height: 1.15rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calculator-output {
+  display: block;
+  width: 100%;
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-size: clamp(1.75rem, 7vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calculator-output--compact {
+  font-size: 1.45rem;
+}
+
+.calculator-keypad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.calculator-key {
+  min-width: 0;
+  min-height: 3.1rem;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.calculator-key:hover {
+  border-color: color-mix(in srgb, var(--color-blue) 35%, var(--border));
+  filter: brightness(0.97);
+}
+
+[data-theme="dark"] .calculator-key:hover {
+  filter: brightness(1.12);
+}
+
+.calculator-key:active {
+  transform: scale(0.96);
+}
+
+.calculator-key--utility {
+  color: var(--text-muted);
+}
+
+.calculator-key--operator {
+  border-color: transparent;
+  background: var(--color-blue-bg);
+  color: var(--color-blue);
+}
+
+.calculator-key--equals {
+  border-color: var(--color-blue);
+  background: var(--color-blue);
+  color: #fff;
+}
+
+.calculator-key--zero {
+  grid-column: span 2;
+}
+
+.calculator-icon-button:focus-visible,
+.calculator-key:focus-visible {
+  outline: 3px solid var(--color-blue-bg);
+  outline-offset: 2px;
+}
+
+@media (max-width: 575.98px) {
+  .calculator-backdrop {
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .calculator-panel {
+    top: 76px;
+    right: 0.75rem;
+    width: calc(100vw - 1.5rem);
+  }
+}
+
+@media (max-height: 560px) {
+  .calculator-panel {
+    top: 0.5rem;
+    max-height: calc(100vh - 1rem);
+    overflow-y: auto;
+  }
+
+  .calculator-key {
+    min-height: 2.55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calculator-panel {
+    transition-duration: 0.01ms;
+  }
+}
