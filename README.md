@@ -8,8 +8,8 @@ Wallet Check is a browser-based personal finance application for recording incom
 
 Anyone interested in exploring the application can use the following demo account:
 
-Email: isabellataylortest@gmail.com
-Password: Test@123_Isabella
+- **Email:** `isabellataylortest@gmail.com`
+- **Password:** `Test@123_Isabella`
 
 Feel free to log in and explore the available features.
 
