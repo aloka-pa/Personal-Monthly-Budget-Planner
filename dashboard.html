@@ -25,6 +25,7 @@
   <link href="css/styles.css" rel="stylesheet" />
   <link href="css/header-utilities.css" rel="stylesheet" />
   <link href="css/pages/financial-goals.css" rel="stylesheet" />
+  <link href="css/pages/financial-health-score.css" rel="stylesheet" />
 </head>
 <body class="app-layout">
 
@@ -39,6 +40,39 @@
   <main class="container-fluid app-shell app-main content-area pb-5">
 
     <div id="dashboardAlert" class="alert d-none" role="alert"></div>
+
+    <section class="card shadow-sm mb-4 health-score-card" aria-labelledby="healthScoreTitle">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h2 class="h6 mb-1" id="healthScoreTitle">Financial Health Score</h2>
+            <p class="small text-muted mb-0" id="healthScoreMonthLabel">Latest completed month</p>
+          </div>
+        </div>
+
+        <div id="healthScoreLoading" class="small text-muted">Calculating your financial health score...</div>
+        <div id="healthScoreError" class="alert alert-danger d-none" role="alert"></div>
+
+        <div id="healthScoreContent" class="d-none">
+          <div class="row g-3 align-items-start mb-3">
+            <div class="col-md-4">
+              <div class="health-score-overall">
+                <strong class="h2 mb-0" id="healthScoreOverallValue">--</strong>
+                <span class="health-score-label" id="healthScoreOverallLabel"></span>
+              </div>
+              <div class="health-score-delta" id="healthScoreDelta"></div>
+              <p class="small text-muted mb-0 d-none" id="healthScoreInsufficientNote">
+                Not enough data yet for an overall score. Showing available components below.
+              </p>
+            </div>
+            <div class="col-md-8">
+              <div class="row g-2" id="healthScoreComponents"></div>
+            </div>
+          </div>
+          <div class="health-score-explanation" id="healthScoreExplanation"></div>
+        </div>
+      </div>
+    </section>
 
     <section class="card shadow-sm mb-4" aria-labelledby="goalsWidgetTitle">
       <div class="card-body">
@@ -87,8 +121,10 @@
   <script src="js/auth.js"></script>
   <script src="js/currency.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/financial-health-score.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/layout.js"></script>
+  <script src="js/header-utilities.js"></script>
   <script src="js/calculator.js"></script>
   <script src="js/spending-streaks.js"></script>
 </body>
