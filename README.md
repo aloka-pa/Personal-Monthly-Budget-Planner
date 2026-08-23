@@ -4,6 +4,15 @@ Wallet Check is a browser-based personal finance application for recording incom
 
 **Live application:** [aloka-pa.github.io/Personal-Monthly-Budget-Planner](https://aloka-pa.github.io/Personal-Monthly-Budget-Planner/)
 
+### Demo Access
+
+Anyone interested in exploring the application can use the following demo account:
+
+Email: isabellataylortest@gmail.com
+Password: Test@123_Isabella
+
+Feel free to log in and explore the available features.
+
 ## Development Status
 
 Wallet Check is a working application that is still actively evolving. Development follows an iterative **100-day plan**, with regular updates improving its personal finance tools, analytics, usability, and architecture.
