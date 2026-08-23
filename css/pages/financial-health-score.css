@@ -1,0 +1,53 @@
+/* ------------------------------------------------------------
+   Financial Health Score
+   ------------------------------------------------------------ */
+.health-score-overall {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.health-score-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.health-score-delta {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.health-component-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.75rem;
+  background: var(--surface-2);
+  height: 100%;
+}
+
+.health-component-chip.is-unavailable {
+  opacity: 0.6;
+}
+
+.health-component-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.health-component-value {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.health-score-explanation {
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.health-score-explanation ul {
+  padding-left: 1.1rem;
+  color: var(--text-muted);
+}
