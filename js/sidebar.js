@@ -34,7 +34,6 @@
         <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-gear"></i><span class="sidebar-link-label">Settings</span><span class="coming-soon">Soon</span></a>
       </nav>
       <div class="sidebar-footer">
-        <button type="button" class="sidebar-link" data-theme-toggle aria-label="Toggle color theme" title="Toggle dark/light mode"><i class="bi bi-moon-stars" data-theme-icon></i><span class="sidebar-link-label" data-theme-label>Dark mode</span></button>
         <button type="button" class="sidebar-link" id="logoutBtn"><i class="bi bi-box-arrow-right"></i><span class="sidebar-link-label">Logout</span></button>
       </div>
     </aside>

@@ -41,11 +41,16 @@ function setupThemeToggle() {
   applyTheme(getStoredTheme());
 
   buttons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const current = document.documentElement.getAttribute("data-theme") || "dark";
-      applyTheme(current === "dark" ? "light" : "dark");
-    });
+    btn.addEventListener("click", toggleTheme);
   });
 }
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  applyTheme(current === "dark" ? "light" : "dark");
+}
+
+// Allows shared utilities added after DOMContentLoaded to use the same theme behavior.
+window.WalletCheckTheme = { applyTheme, toggleTheme };
 
 document.addEventListener("DOMContentLoaded", setupThemeToggle);
