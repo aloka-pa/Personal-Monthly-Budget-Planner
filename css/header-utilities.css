@@ -1,0 +1,17 @@
+@import url("./calculator.css");
+@import url("./spending-streaks.css");
+
+/* Shared controls in the upper application toolbar. */
+.header-utility-action {
+  flex: 0 0 2.4rem;
+}
+
+.header-utility-action:hover {
+  color: var(--color-blue);
+  background: var(--color-blue-bg);
+}
+
+.header-utility-action:focus-visible {
+  outline: 3px solid var(--color-blue-bg);
+  outline-offset: 2px;
+}

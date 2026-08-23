@@ -21,13 +21,10 @@
   align-items: center;
   padding: 0.25rem 0.55rem;
   border-radius: 99px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: capitalize;
 }
 
 .planner-status-confirmed { color: var(--color-green); background: var(--color-green-bg); }
-.planner-status-tentative { color: var(--color-yellow); background: var(--color-yellow-bg); }
+.planner-status-tentative { color: var(--color-gray); background: var(--surface-2); }
 .planner-status-completed { color: var(--color-blue); background: var(--color-blue-bg); }
 .planner-status-cancelled { color: var(--color-red); background: var(--color-red-bg); }
 
@@ -62,16 +59,27 @@
   font-weight: 400 !important;
 }
 
-.planner-col-expense { width: 33.3333%; }
-.planner-col-category { width: 13.3333%; }
-.planner-col-status { width: 13.3333%; }
-.planner-col-amount { width: 20%; }
-.planner-col-actions { width: 20%; }
+.planner-col-description { width: 40%; }
+.planner-col-category { width: 16%; }
+.planner-col-amount { width: 16%; }
+.planner-col-status { width: 12%; }
+.planner-col-actions { width: 16%; }
 
 .planner-table > :not(caption) > * > * {
   padding-right: 0.55rem;
   padding-left: 0.55rem;
   border-color: var(--border);
+  text-align: center;
+}
+
+.planner-table thead th:first-child,
+.planner-table tbody td:first-child {
+  text-align: left;
+}
+
+.planner-table thead th:last-child,
+.planner-table tbody td:last-child {
+  text-align: right;
 }
 
 .planner-table tbody tr:last-child > * {
@@ -84,7 +92,7 @@
   border-bottom: 0;
 }
 
-.planner-expense-title {
+.planner-description {
   overflow-wrap: anywhere;
 }
 
@@ -140,22 +148,26 @@
   .planner-table tbody td {
     padding: 0;
     border: 0;
-    text-align: left !important;
+    text-align: center !important;
   }
 
   .planner-table tbody td::before {
     content: attr(data-label);
     display: block;
     margin-bottom: 0.1rem;
-    color: var(--text-muted);
-    font-size: inherit;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
+  color: var(--text-muted);
+  font-size: inherit;
+  font-weight: 400;
+  text-transform: uppercase;
+}
 
   .planner-table tbody td:first-child,
   .planner-table tbody td:nth-child(2) {
     grid-column: 1 / -1;
+  }
+
+  .planner-table tbody td:first-child {
+    text-align: left !important;
   }
 
   .planner-table tbody td:first-child::before {
@@ -187,7 +199,7 @@
 
   .planner-table tfoot th:first-child {
     grid-column: 1;
-    text-align: left !important;
+    text-align: center !important;
   }
 
   .planner-table tfoot th:nth-child(2) {
