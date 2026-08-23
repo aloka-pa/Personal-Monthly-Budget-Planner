@@ -256,14 +256,6 @@
     const headerActions = document.querySelector(".top-header .app-shell");
     if (!headerActions || document.getElementById("walletCalculatorToggle")) return;
 
-    const themeToggle = document.createElement("button");
-    themeToggle.className = "header-action header-utility-action header-theme-toggle";
-    themeToggle.type = "button";
-    themeToggle.title = "Toggle dark/light mode";
-    themeToggle.setAttribute("aria-label", "Toggle color theme");
-    themeToggle.setAttribute("data-theme-toggle", "");
-    themeToggle.innerHTML = '<i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i><span class="visually-hidden" data-theme-label>Dark mode</span>';
-
     const trigger = document.createElement("button");
     trigger.className = "header-action header-utility-action calculator-trigger";
     trigger.id = "walletCalculatorToggle";
@@ -274,14 +266,11 @@
     trigger.setAttribute("aria-expanded", "false");
     trigger.setAttribute("aria-controls", "walletCalculator");
     trigger.innerHTML = '<i class="bi bi-calculator" aria-hidden="true"></i>';
-    headerActions.appendChild(trigger);
-    headerActions.appendChild(themeToggle);
-
-    // The header controls are injected after the theme module's initial DOM scan.
-    window.WalletCheckTheme?.applyTheme(
-      document.documentElement.getAttribute("data-theme") || "dark"
-    );
-    themeToggle.addEventListener("click", () => window.WalletCheckTheme?.toggleTheme());
+    if (window.WalletCheckHeaderUtilities) {
+      window.WalletCheckHeaderUtilities.insertBeforeTheme(trigger);
+    } else {
+      headerActions.appendChild(trigger);
+    }
 
     document.body.insertAdjacentHTML("beforeend", calculatorMarkup());
 
