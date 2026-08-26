@@ -20,6 +20,8 @@
 
   const ORIGINAL_WEIGHTS = { budgeting: 30, saving: 30, spending: 20, goals: 20 };
   const SAVINGS_BENCHMARK = 0.20;
+  const MS_PER_MONTH = 30.4368 * 24 * 60 * 60 * 1000; // average month length, for expected monthly pace
+  const FALLBACK_PACE_MONTHS = 12; // used when a goal has no target date, or an unusable one
   const COMPONENT_KEYS = ["budgeting", "saving", "spending", "goals"];
   const COMPONENT_LABELS = {
     budgeting: "Budgeting",
@@ -29,9 +31,9 @@
   };
   const COMPONENT_HELP = {
     budgeting: "How well you stayed within your category budgets.",
-    saving: "How much of your income you saved, compared to a healthy target.",
+    saving: "How much of your income you saved this month, measured against a 20% savings-rate benchmark for a perfect score.",
     spending: "How evenly your spending was spread out, instead of coming in big spikes.",
-    goals: "How on-track your savings goals are for their target dates.",
+    goals: "How much you contributed to your active goals this month, compared to their combined expected monthly pace.",
   };
 
   function isFiniteNumber(value) {
@@ -148,7 +150,7 @@
     const [goalsResult, contributionsResult] = await Promise.all([
       supabaseClient
         .from("financial_goals")
-        .select("id, target_amount, target_date, created_at")
+        .select("id, target_amount, target_date, created_at, is_completed")
         .eq("user_id", userId),
       supabaseClient
         .from("goal_contributions")
@@ -282,68 +284,63 @@
   // ------------------------------------------------------------
   // Goals component
   // ------------------------------------------------------------
-  // "Goal Start" is the goal's created_at date - the only creation
-  // reference the existing schema provides (financial_goals has no
-  // separate start-date field). Historical completion is never
-  // inferred from the current is_completed flag.
+  // Pools contributions and expected pace across all currently-
+  // active (not completed) goals, rather than averaging a score
+  // per goal - so one large contribution to a single goal can
+  // offset other active goals receiving nothing that month, instead
+  // of being diluted by them. "Active" uses each goal's *current*
+  // is_completed flag even for a past score month, since the
+  // schema has no historical completion timestamp - an accepted
+  // approximation (see docs/Financial-Health-Score-Logic.md).
   // ------------------------------------------------------------
-  function computeGoalScore(goal, contributionsTotal, scoreMonthEnd) {
+  function computeExpectedMonthlyPace(goal) {
     const targetAmount = Number(goal.target_amount);
     if (!isFiniteNumber(targetAmount) || targetAmount <= 0) return null;
 
-    const createdAt = goal.created_at ? new Date(goal.created_at) : null;
-    if (!createdAt || Number.isNaN(createdAt.getTime())) return null;
-
-    const goalStart = new Date(createdAt.getFullYear(), createdAt.getMonth(), createdAt.getDate());
-    if (goalStart > scoreMonthEnd) return null;
-
-    const actualProgress = contributionsTotal / targetAmount;
-    if (!isFiniteNumber(actualProgress)) return null;
-
-    if (!goal.target_date) {
-      const score = clamp(actualProgress * 100, 0, 100);
-      return isFiniteNumber(score) ? score : null;
+    if (goal.target_date && goal.created_at) {
+      const createdAt = new Date(goal.created_at);
+      const targetDate = new Date(`${goal.target_date}T00:00:00`);
+      if (!Number.isNaN(createdAt.getTime()) && !Number.isNaN(targetDate.getTime())) {
+        const goalStart = new Date(createdAt.getFullYear(), createdAt.getMonth(), createdAt.getDate());
+        const durationMonths = (targetDate.getTime() - goalStart.getTime()) / MS_PER_MONTH;
+        if (isFiniteNumber(durationMonths) && durationMonths > 0) {
+          return targetAmount / durationMonths;
+        }
+      }
     }
 
-    const targetDate = new Date(`${goal.target_date}T00:00:00`);
-    if (Number.isNaN(targetDate.getTime())) return null;
-
-    const totalDurationMs = targetDate.getTime() - goalStart.getTime();
-    if (!isFiniteNumber(totalDurationMs) || totalDurationMs <= 0) return null;
-
-    const cutoffMs = Math.min(scoreMonthEnd.getTime(), targetDate.getTime());
-    const elapsedDurationMs = cutoffMs - goalStart.getTime();
-    if (!isFiniteNumber(elapsedDurationMs) || elapsedDurationMs <= 0) return null;
-
-    const expectedProgress = elapsedDurationMs / totalDurationMs;
-    if (!isFiniteNumber(expectedProgress) || expectedProgress <= 0) return null;
-
-    const rawScore = (actualProgress / expectedProgress) * 100;
-    if (!isFiniteNumber(rawScore)) return null;
-
-    return clamp(rawScore, 0, 100);
+    // No target date, or an unusable one: assume a flat one-year pace.
+    return targetAmount / FALLBACK_PACE_MONTHS;
   }
 
-  function computeGoalsComponent({ goals, contributions, scoreMonthEnd }) {
-    const contributionsByGoal = new Map();
+  function computeGoalsComponent({ goals, contributions, monthStart, monthEnd }) {
+    const activeGoals = goals.filter((goal) => !goal.is_completed);
+    if (activeGoals.length === 0) return { available: false, score: null };
+
+    const pacedGoalIds = new Set();
+    let expectedTotal = 0;
+    activeGoals.forEach((goal) => {
+      const pace = computeExpectedMonthlyPace(goal);
+      if (pace === null) return;
+      pacedGoalIds.add(goal.id);
+      expectedTotal += pace;
+    });
+
+    if (!(expectedTotal > 0)) return { available: false, score: null };
+
+    let contributedTotal = 0;
     contributions.forEach((row) => {
+      if (!pacedGoalIds.has(row.goal_id)) return;
       const contributionDate = new Date(`${row.contribution_date}T00:00:00`);
       if (Number.isNaN(contributionDate.getTime())) return;
-      if (contributionDate > scoreMonthEnd) return;
-      contributionsByGoal.set(row.goal_id, (contributionsByGoal.get(row.goal_id) || 0) + Number(row.amount));
+      if (contributionDate < monthStart || contributionDate > monthEnd) return;
+      const amount = Number(row.amount);
+      if (!isFiniteNumber(amount)) return;
+      contributedTotal += amount;
     });
 
-    const scores = [];
-    goals.forEach((goal) => {
-      const contributionsTotal = contributionsByGoal.get(goal.id) || 0;
-      const score = computeGoalScore(goal, contributionsTotal, scoreMonthEnd);
-      if (score !== null) scores.push(score);
-    });
-
-    if (scores.length === 0) return { available: false, score: null };
-
-    const average = scores.reduce((sum, value) => sum + value, 0) / scores.length;
-    return { available: true, score: clamp(average, 0, 100), eligibleCount: scores.length };
+    const score = clamp((contributedTotal / expectedTotal) * 100, 0, 100);
+    return { available: true, score, activeCount: activeGoals.length, contributedTotal, expectedTotal };
   }
 
   // ------------------------------------------------------------
@@ -426,7 +423,8 @@
       goals: computeGoalsComponent({
         goals: goalsData.goals,
         contributions: goalsData.contributions,
-        scoreMonthEnd: monthInfo.end,
+        monthStart: monthInfo.start,
+        monthEnd: monthInfo.end,
       }),
     };
 
@@ -483,7 +481,7 @@
       bullets.push("A number of days exceeded the daily spending target.");
     }
     if (goals.available && goals.score < 100) {
-      bullets.push("One or more goals were behind their expected progress.");
+      bullets.push("Contributions to active goals fell short of their combined expected monthly pace.");
     }
 
     return {

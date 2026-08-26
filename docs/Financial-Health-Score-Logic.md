@@ -249,100 +249,89 @@ Spending Consistency is available only when the score month has a positive aggre
 
 ## Goals score
 
-Goals measures progress as it actually stood at the end of the score month. Future contributions and goals created later must not alter historical scores.
+Goals measures how much you contributed toward your currently active goals during the score month, relative to how much those goals combined were expected to need that month. Contributions and expected amounts are **pooled** across all active goals rather than scored per goal and averaged — this is deliberate: averaging per goal would let goals with no activity that month drag the score down regardless of how large a contribution to another goal was, which does not reflect the intent of the component. Pooling lets one large contribution offset other active goals receiving nothing that month.
 
-### Historically eligible goals
+### Active goals
 
-A goal may enter the score-month calculation only when:
-
-- It was created on or before the score month's final date.
-- Its target amount is positive and finite.
-- It passes the applicable dated or undated goal safeguards below.
-
-Contributions are included only when:
+An active goal is any current goal that is not marked completed:
 
 ```text
-contribution_date <= score month end
+Active Goals = goals where is_completed = false (current state)
 ```
 
-Contributions dated after the month-end cutoff must not affect the historical Actual Progress.
+This uses each goal's *current* completion status even when scoring a past month — see [Current-state approximation](#current-state-approximation) below for why, and its consequence for historical stability.
 
-### Dated goals
+If there are no active goals, Goals is unavailable (`—`).
 
-For a goal with a target date:
+### Expected monthly pace
+
+Each active goal contributes an expected monthly amount to a pooled total:
 
 ```text
-Total Duration = Target Date − Goal Start
+Expected Monthly Pace (dated goal) =
+    Target Amount / months between Goal Start and Target Date
 
-Elapsed Duration =
-    min(Score Month End, Target Date) − Goal Start
-
-Expected Progress = Elapsed Duration / Total Duration
-
-Actual Progress =
-    Contributions through Score Month End / Target Amount
-
-Goal Score =
-    clamp(Actual Progress / Expected Progress × 100, 0, 100)
+Expected Monthly Pace (undated goal, or a dated goal whose
+Target Date is not after Goal Start) =
+    Target Amount / 12
 ```
 
-Using `min(Score Month End, Target Date)` makes Expected Progress equal `100%` after the target date has passed.
+`Goal Start` is the goal's `created_at` date, the only creation reference the schema provides. The 12-month fallback is a flat assumption, chosen the same way the Saving component uses a flat 20% benchmark: it gives goals without a usable schedule a reasonable, non-zero expected pace instead of excluding them.
+
+A goal whose `target_amount` is zero, negative, or non-finite contributes no expected pace and is excluded from both sides of the ratio below (its contributions, if any, do not enter the numerator either).
+
+```text
+Expected Monthly Pace Total = Σ(Expected Monthly Pace) across active, pace-eligible goals
+```
+
+If the total is zero (no active goal has a usable, positive target amount), Goals is unavailable (`—`).
+
+### Contributions this month
+
+Only contributions to active, pace-eligible goals count, and only when dated within the score month:
+
+```text
+score month start <= contribution_date <= score month end
+```
+
+This applies regardless of when the goal itself was created — a contribution dated in the score month counts even if the goal was created after that month ended.
+
+```text
+Contributed Total = Σ(contribution amounts meeting the above) across active, pace-eligible goals
+```
+
+### Component formula
+
+```text
+Goals Score =
+    clamp(Contributed Total / Expected Monthly Pace Total × 100, 0, 100)
+```
 
 #### Example
 
-If a goal was expected to be 50% complete by the score month end but was actually 40% complete:
-
 ```text
-Goal Score = 40% / 50% × 100 = 80
+Goal A: target 50,000; created Jan 1; target date Nov 1 (10 months) → pace 5,000/mo
+Goal B: target 20,000; created Mar 1; target date Nov 1 (8 months)  → pace 2,500/mo
+Goal C: target  5,000; created Jun 1; target date Sep 1 (3 months)  → pace 1,667/mo
+
+Expected Monthly Pace Total = 5,000 + 2,500 + 1,667 = 9,167
+
+Only Goal A received a contribution this month: 15,000
+
+Goals Score = clamp(15,000 / 9,167 × 100, 0, 100) = 100
 ```
 
-### Dated-goal safeguards
+A single large contribution can reach 100 even though the other active goals received nothing that month — this is intended, not a bug.
 
-Exclude a dated goal from that month's Goals component when any of the following is true:
+### Goals availability
 
-- Target amount is zero, negative, or non-finite.
-- The goal was created after the score month.
-- Total Duration is zero, negative, or non-finite.
-- Elapsed Duration is zero or negative.
-- Expected Progress is zero, negative, or non-finite.
-- Actual Progress or the resulting Goal Score is non-finite.
+Goals is available only when at least one active (not completed) goal exists with a positive, finite target amount. Otherwise it is unavailable (`—`).
 
-Exclusion is preferable to assigning an artificial zero. In particular, a goal created on the final day of the score month may not yet have enough elapsed duration for a meaningful schedule comparison.
+### Current-state approximation
 
-### Goals without target dates
+The goal model has a current `is_completed` flag but no reliable completion timestamp or status history. There is no way to reconstruct whether a goal was already completed during a historical score month, so Goals deliberately uses each goal's *current* `is_completed` value to define the active set for every month, including past ones.
 
-An eligible goal without a target date uses raw completion percentage:
-
-```text
-Goal Score =
-    clamp(Contributions through Score Month End / Target Amount × 100, 0, 100)
-```
-
-No Expected Progress division is required.
-
-### Combining goals
-
-Average all historically eligible, mathematically valid goal scores equally:
-
-```text
-Goals Score = Σ(Eligible Goal Scores) / Eligible Goal Count
-```
-
-Goals are not weighted by target amount. Each goal represents one user commitment regardless of its monetary size.
-
-If no goal remains eligible after applying the historical cutoff and safeguards, Goals is unavailable (`—`).
-
-### Historical completion limitation
-
-The existing goal model has a current `is_completed` flag but no reliable completion timestamp or status history. A current flag cannot establish whether a goal was already completed during a historical score month.
-
-Therefore, this scope must not:
-
-- Infer a completion date from the current `is_completed` value.
-- Reconstruct or persist completion history.
-- Exclude a goal from a historical month merely because it is currently completed.
-
-Historical contributions reaching or exceeding the target naturally produce a score of `100` after clamping. Without reliable completion history, a previously completed goal may remain part of later historical calculations. This is an accepted limitation of the agreed scope.
+Consequence: marking a goal completed today removes it from the active set for every month's Goals score, including months already scored and shown to the user — recalculating an old month can therefore change its Goals score. This is an accepted limitation of the agreed scope, chosen over reconstructing unavailable historical status.
 
 ## Missing data and weight rebalancing
 
@@ -376,7 +365,7 @@ Overall = (80×30 + 70×30 + 90×20) / (30+30+20)
 | Budgeting | A positive aggregate budget exists across budget-enabled categories |
 | Saving | Monthly income is positive and finite |
 | Spending Consistency | A positive aggregate budget exists across budget-enabled categories |
-| Goals | At least one historically eligible and mathematically valid goal exists |
+| Goals | At least one currently active (not completed) goal exists with a positive, finite target amount |
 
 ## Minimum data required for an overall score
 
@@ -478,7 +467,7 @@ Possible current-state explanations include:
 - One or more categories exceeded their configured budgets.
 - Some budget-enabled spending occurred in categories without budgets.
 - A number of days exceeded the daily spending target.
-- One or more goals were behind their expected progress.
+- Contributions to active goals fell short of their combined expected monthly pace.
 
 These messages describe the score without falsely implying a month-to-month decline.
 
@@ -507,9 +496,9 @@ Labels are based on the displayed overall score. Component scores may use the sa
 - Treat spending exactly equal to a category budget or daily target as successful.
 - Treat no-spending days as successful when Spending Consistency is available.
 - Account for the actual number of days in the score month, including leap-year February.
-- Count goal contributions only through the historical month-end cutoff.
-- Exclude dated goals whose schedule cannot produce meaningful positive Expected Progress.
-- Do not infer historical goal completion from a current boolean flag.
+- Count a contribution toward Goals only when its date falls within the score month, regardless of when the goal was created.
+- Pool contributions and expected pace across active goals rather than averaging a per-goal score — averaging would let inactive goals dilute a large contribution to one goal.
+- Goals uses each goal's *current* `is_completed` flag to define the active set for every month, including past months — an accepted approximation given the lack of historical completion tracking (see [Current-state approximation](#current-state-approximation)).
 - Suppress previous-month comparisons when component availability differs.
 - Use causal increase/decrease language only when a valid comparison supports it.
 
