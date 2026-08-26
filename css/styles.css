@@ -6,13 +6,13 @@
 
   /* Apple system colors (light) */
   --color-blue: #00b7c2;
-  --color-green: #9cd312;
-  --color-yellow: #ffc04a;
+  --color-green: #5abd18; /*#5abd18*/
+  --color-yellow: #ffbb29f5;
   --color-red: #C62828;
   --color-gray: #8e8e93;
 
   --color-blue-bg: rgba(0, 122, 255, 0.1);
-  --color-green-bg: rgba(52, 199, 89, 0.12);
+  --color-green-bg: rgb(105 255 86 / 30%);
   --color-yellow-bg: rgba(255, 149, 0, 0.15);
   --color-red-bg: rgba(255, 59, 48, 0.12);
 
