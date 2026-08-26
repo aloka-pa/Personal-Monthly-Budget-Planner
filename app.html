@@ -148,25 +148,6 @@
               step="0.01"
               required
             />
-
-            <div class="input-group mt-3">
-              <input
-                type="text"
-                class="form-control"
-                id="newCategoryName"
-                placeholder="Add a custom category..."
-                maxlength="100"
-              />
-              <button class="btn btn-outline-secondary" type="button" id="addCategoryBtn">
-                Add
-              </button>
-            </div>
-            <div class="form-check mt-2">
-              <input class="form-check-input" type="checkbox" id="newCategoryIncludeInBudget" checked />
-              <label class="form-check-label" for="newCategoryIncludeInBudget">
-                Include this category in budget tracking
-              </label>
-            </div>
           </div>
 
           <div class="col-12 col-md-3">
@@ -193,6 +174,61 @@
             />
           </div>
 
+          <div class="col-12 col-md-3">
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                id="newCategoryName"
+                placeholder="Add a custom category..."
+                maxlength="100"
+              />
+              <button class="btn btn-outline-secondary" type="button" id="addCategoryBtn">
+                Add
+              </button>
+            </div>
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" id="newCategoryIncludeInBudget" checked />
+              <label class="form-check-label" for="newCategoryIncludeInBudget">
+                Include this category in budget tracking
+              </label>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-9">
+            <label class="form-label d-block">Type</label>
+            <div class="expense-type-checkboxes" id="expenseTypeGroup">
+              <div class="expense-type-option" data-expense-type="expense">
+                <label class="expense-type-option-control">
+                  <input class="form-check-input" type="checkbox" id="expenseTypeExpenseCheckbox" />
+                  <span>Expense</span>
+                </label>
+                <i
+                  class="bi bi-question-circle-fill"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Regular spending. Deducted from income but not counted toward your Saving Score."
+                  tabindex="0"
+                  aria-label="What counts as an Expense"
+                ></i>
+              </div>
+              <div class="expense-type-option" data-expense-type="saving">
+                <label class="expense-type-option-control">
+                  <input class="form-check-input" type="checkbox" id="expenseTypeSavingCheckbox" />
+                  <span>Saving</span>
+                </label>
+                <i
+                  class="bi bi-question-circle-fill"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="top"
+                  title="Money set aside. Deducted from income and counted toward your Saving Score."
+                  tabindex="0"
+                  aria-label="What counts as Saving"
+                ></i>
+              </div>
+            </div>
+          </div>
+
           <div class="col-12">
             <label for="expenseDescription" class="form-label">Description (optional)</label>
             <textarea
@@ -203,8 +239,16 @@
             ></textarea>
           </div>
 
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">Add Expense</button>
+          <div class="col-12 d-flex align-items-center gap-2">
+            <button type="submit" class="btn btn-primary" id="addExpenseSubmitBtn" disabled>Add Expense</button>
+            <i
+              class="bi bi-question-circle-fill"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Enabled once amount, payment method, category, date, and a Type (Expense or Saving) are all filled in."
+              tabindex="0"
+              aria-label="Why is Add Expense disabled?"
+            ></i>
           </div>
         </form>
       </div>
@@ -229,6 +273,7 @@
                 <tr>
                   <th>Date &amp; Time</th>
                   <th>Category</th>
+                  <th>Type</th>
                   <th data-currency-label="Amount ({cur})">Amount (LKR)</th>
                   <th>Description</th>
                   <th class="text-end">Actions</th>
@@ -236,7 +281,7 @@
               </thead>
               <tbody id="expenseListBody">
                 <tr>
-                  <td colspan="5" class="text-center text-muted">Loading expenses...</td>
+                  <td colspan="6" class="text-center text-muted">Loading expenses...</td>
                 </tr>
               </tbody>
             </table>
@@ -284,6 +329,39 @@
             <div class="mb-3">
               <label for="editExpenseCategory" class="form-label">Category</label>
               <select class="form-select" id="editExpenseCategory" required></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label d-block">Type</label>
+              <div class="expense-type-checkboxes" id="editExpenseTypeGroup">
+                <div class="expense-type-option" data-expense-type="expense">
+                  <label class="expense-type-option-control">
+                    <input class="form-check-input" type="checkbox" id="editExpenseTypeExpenseCheckbox" />
+                    <span>Expense</span>
+                  </label>
+                  <i
+                    class="bi bi-question-circle-fill"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Regular spending. Deducted from income but not counted toward your Saving Score."
+                    tabindex="0"
+                    aria-label="What counts as an Expense"
+                  ></i>
+                </div>
+                <div class="expense-type-option" data-expense-type="saving">
+                  <label class="expense-type-option-control">
+                    <input class="form-check-input" type="checkbox" id="editExpenseTypeSavingCheckbox" />
+                    <span>Saving</span>
+                  </label>
+                  <i
+                    class="bi bi-question-circle-fill"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Money set aside. Deducted from income and counted toward your Saving Score."
+                    tabindex="0"
+                    aria-label="What counts as Saving"
+                  ></i>
+                </div>
+              </div>
             </div>
             <div class="mb-3">
               <label for="editExpenseDatetime" class="form-label">Date &amp; Time</label>

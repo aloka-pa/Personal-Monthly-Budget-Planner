@@ -168,3 +168,82 @@
   flex-direction: row;
   gap: 0.35rem;
 }
+
+/* ------------------------------------------------------------
+   Expense classification (Type column badge + checkboxes)
+   ------------------------------------------------------------ */
+.expense-type-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.expense-type-badge-expense {
+  background-color: var(--color-blue-bg);
+  color: var(--color-blue);
+}
+
+.expense-type-badge-saving {
+  background-color: var(--color-green-bg);
+  color: var(--color-green);
+}
+
+.expense-type-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: calc(1.5em + 0.75rem + 2px);
+}
+
+.expense-type-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background-color: var(--surface-2);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.expense-type-option-control {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.expense-type-option-control .form-check-input {
+  margin: 0;
+}
+
+/* The checkbox itself always checks blue, same as Expense - only
+   the surrounding chip (border/background) turns green for Saving. */
+.expense-type-option .form-check-input:checked {
+  background-color: var(--color-blue);
+  border-color: var(--color-blue);
+}
+
+.expense-type-option:has(.form-check-input:checked) {
+  border-color: var(--color-blue);
+  background-color: var(--color-blue-bg);
+}
+
+.expense-type-checkboxes .bi-info-circle,
+#addExpenseSubmitBtn ~ .bi-info-circle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.expense-type-checkboxes .bi-info-circle:focus-visible,
+#addExpenseSubmitBtn ~ .bi-info-circle:focus-visible {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+  border-radius: 50%;
+}

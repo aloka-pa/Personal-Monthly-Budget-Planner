@@ -50,12 +50,14 @@ The components deliberately do not all use the same expense scope:
 
 | Calculation | Included expenses | Excluded expenses |
 |---|---|---|
-| Budgeting adherence | Expenses in categories where `include_in_budget = true` and a category budget is configured | Categories where `include_in_budget = false`; unbudgeted categories are handled by Coverage instead |
-| Budget Coverage | All expenses in categories where `include_in_budget = true` | Categories where `include_in_budget = false` |
-| Saving | **All** expenses in the scored month | None based on `include_in_budget` |
-| Spending Consistency | Daily expenses in categories where `include_in_budget = true` | Categories where `include_in_budget = false` |
+| Budgeting adherence | Expenses in categories where `include_in_budget = true` and a category budget is configured, and `expense_type != 'saving'` | Categories where `include_in_budget = false`; unbudgeted categories are handled by Coverage instead; `expense_type = 'saving'` rows |
+| Budget Coverage | All expenses in categories where `include_in_budget = true` and `expense_type != 'saving'` | Categories where `include_in_budget = false`; `expense_type = 'saving'` rows |
+| Saving | All expenses classified `expense_type = 'expense'` (or legacy/null, which defaults to `'expense'`) in the scored month | `expense_type = 'saving'` rows; none excluded based on `include_in_budget` |
+| Spending Consistency | Daily expenses in categories where `include_in_budget = true` and `expense_type != 'saving'` | Categories where `include_in_budget = false`; `expense_type = 'saving'` rows |
 
 The `include_in_budget` flag affects only budget-related measurements. It must never remove an expense from Saving.
+
+`expense_type` is a separate, per-expense classification (`'expense'` | `'saving'`, defaulting to `'expense'`) recording whether the user marked the entry as genuine spending or money intentionally set aside. Unlike `include_in_budget`, an `expense_type = 'saving'` row is excluded consistently everywhere real spending is measured — Budgeting, Budget Coverage, Spending Consistency, *and* the Saving component's own expense subtraction — because the classification is a statement about what the money is (reserved/transferred, not consumed), not something scoped to a single component. Both classifications still reduce Balance/Spent identically; `expense_type` never affects cash-flow tracking, only which score components treat the money as spent.
 
 ## Budgeting score
 
@@ -153,10 +155,10 @@ If the aggregate budget is missing or not positive, Budgeting is unavailable (`�
 
 ## Saving score
 
-Saving measures the percentage of monthly income retained after all expenses:
+Saving measures the percentage of monthly income retained after genuine spending:
 
 ```text
-Savings Rate = (Income − All Expenses) / Income
+Savings Rate = (Income − Expense-classified Spending) / Income
 
 Saving Score = clamp(Savings Rate / 0.20 × 100, 0, 100)
 ```
@@ -173,9 +175,9 @@ The `20%` savings rate is the benchmark for a perfect Saving score.
 
 ### Saving expense scope
 
-Saving always uses **all expenses assigned to the scored month**, including expenses in categories where `include_in_budget = false`.
+Saving uses all expenses classified `expense_type = 'expense'` (or legacy/null, which defaults to `'expense'`) in the scored month, regardless of `include_in_budget` — an expense in a category where `include_in_budget = false` still reduces the Saving score, since excluding it from budget tracking does not mean the money was not spent.
 
-This is intentional: excluding an expense from budget tracking does not mean the money was not spent.
+Expenses classified `expense_type = 'saving'` are excluded from this subtraction: they represent money the user intentionally set aside rather than spent, so any resulting leftover Balance is implicitly counted as retained, exactly as it already is for genuinely-unspent income. `include_in_budget` itself still has no effect on Saving; `expense_type` is the only classification that does.
 
 ### Saving availability
 
@@ -501,6 +503,7 @@ Labels are based on the displayed overall score. Component scores may use the sa
 - Do not skip backward to a more convenient score month when the latest completed month lacks data.
 - Apply `include_in_budget` consistently to both sides of Budgeting and Spending Consistency calculations.
 - Never apply `include_in_budget` to Saving.
+- Exclude `expense_type = 'saving'` rows from Budgeting, Budget Coverage, Spending Consistency, and the Saving component's expense subtraction — this exclusion applies regardless of each category's `include_in_budget` flag, and regardless of any other component's inclusion rules.
 - Treat spending exactly equal to a category budget or daily target as successful.
 - Treat no-spending days as successful when Spending Consistency is available.
 - Account for the actual number of days in the score month, including leap-year February.
@@ -543,6 +546,7 @@ No Financial Health Score calculation source file or function existed when this 
   - `fetchAllIncomes(userId)` and `fetchAllExpenses(userId)` read historical monthly finance data.
   - `getMonthKey(date)` and `buildMonthRange(startDate, endDate)` provide existing historical month grouping behavior.
 - [`Supbase scripts/1-setup.sql`](../Supbase%20scripts/1-setup.sql) defines `monthly_incomes`, `expenses`, their monetary constraints, and expense timestamps.
+- [`Supbase scripts/10 - expense classification.sql`](../Supbase%20scripts/10%20-%20expense%20classification.sql) defines `expenses.expense_type` (`'expense'` | `'saving'`, default `'expense'`).
 
 ### Goal semantics
 

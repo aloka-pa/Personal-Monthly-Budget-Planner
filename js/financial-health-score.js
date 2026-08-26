@@ -108,7 +108,7 @@
   async function fetchExpensesForMonth(userId, monthFirstDay) {
     const { data, error } = await supabaseClient
       .from("expenses")
-      .select("category_id, amount, expense_datetime")
+      .select("category_id, amount, expense_datetime, expense_type")
       .eq("user_id", userId)
       .eq("budget_month", monthFirstDay);
 
@@ -168,6 +168,7 @@
     expenses.forEach((expense) => {
       const id = String(expense.category_id);
       if (!eligibleIds.has(id)) return;
+      if (expense.expense_type === "saving") return;
       spendingByCategory.set(id, (spendingByCategory.get(id) || 0) + Number(expense.amount));
     });
 
@@ -202,8 +203,12 @@
   // ------------------------------------------------------------
   // Saving component
   // ------------------------------------------------------------
-  // Uses ALL of the month's expenses - never filtered by
-  // include_in_budget. Unavailable (not zero) without positive income.
+  // Uses expenses classified 'expense' (or legacy/null, which
+  // defaults to 'expense') - never filtered by include_in_budget.
+  // Expenses classified 'saving' are excluded from the subtraction:
+  // they represent money set aside, not consumption, so any
+  // resulting leftover Balance is implicitly counted as retained.
+  // Unavailable (not zero) without positive income.
   // ------------------------------------------------------------
   function computeSavingComponent({ income, allExpensesTotal }) {
     if (!isFiniteNumber(income) || income <= 0) {
@@ -240,6 +245,7 @@
     const spendingByDay = new Map();
     expenses.forEach((expense) => {
       if (!eligibleIds.has(String(expense.category_id))) return;
+      if (expense.expense_type === "saving") return;
       const expenseDate = new Date(expense.expense_datetime);
       if (Number.isNaN(expenseDate.getTime())) return;
       const key = toLocalDateKey(expenseDate);
@@ -377,7 +383,9 @@
       fetchIncomeForMonth(userId, monthInfo.firstDay),
     ]);
 
-    const allExpensesTotal = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+    const allExpensesTotal = expenses
+      .filter((expense) => expense.expense_type !== "saving")
+      .reduce((sum, expense) => sum + Number(expense.amount), 0);
 
     const components = {
       budgeting: computeBudgetingComponent({ categories, categoryBudgets, expenses }),

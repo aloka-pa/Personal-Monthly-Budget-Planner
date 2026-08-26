@@ -46,6 +46,7 @@
     const spendingByMonth = {};
     expenses.forEach((expense) => {
       if (!includedCategoryIds.has(String(expense.category_id))) return;
+      if (expense.expense_type === "saving") return;
       const expenseDate = new Date(expense.expense_datetime);
       if (!Number.isNaN(expenseDate.getTime())) {
         addToTotal(spendingByDay, toLocalDateKey(expenseDate), expense.amount);
@@ -128,7 +129,7 @@
         .or(`user_id.is.null,user_id.eq.${userId}`),
       supabaseClient
         .from("expenses")
-        .select("category_id, amount, expense_datetime, budget_month")
+        .select("category_id, amount, expense_datetime, budget_month, expense_type")
         .eq("user_id", userId),
       fetchBudgetRows(userId),
     ]);

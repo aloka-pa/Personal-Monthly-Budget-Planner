@@ -164,7 +164,7 @@ async function fetchCategories(userId) {
 async function fetchExpensesForMonth(userId, monthFirstDay) {
   const { data, error } = await supabaseClient
     .from("expenses")
-    .select("category_id, amount")
+    .select("category_id, amount, expense_type")
     .eq("user_id", userId)
     .eq("budget_month", monthFirstDay);
 
@@ -202,6 +202,7 @@ async function fetchCategoryBudgetsForMonth(userId, monthFirstDay) {
 function buildBudgetRows(categories, expenses, budgetRows) {
   const spentByCategory = {};
   expenses.forEach((expense) => {
+    if (expense.expense_type === "saving") return;
     const key = String(expense.category_id);
     spentByCategory[key] = (spentByCategory[key] || 0) + Number(expense.amount);
   });

@@ -39,6 +39,58 @@ function isValidPaymentMethod(paymentMethod) {
   return EXPENSE_PAYMENT_METHODS.has(paymentMethod);
 }
 
+// Currently selected classification for the add-expense form and
+// the edit-expense modal, kept outside any single input element
+// since a two-button toggle (not a radio group) has no native
+// form value of its own.
+let selectedExpenseType = null;
+let selectedEditExpenseType = null;
+
+// Normalizes a stored/legacy expense_type value to a known type,
+// treating anything but the literal 'saving' as 'expense' - this
+// matches the DB column's own default and means a null/undefined
+// value from a stale cached row never needs a separate branch.
+function normalizeExpenseType(expenseType) {
+  return expenseType === "saving" ? "saving" : "expense";
+}
+
+// Wires mutual-exclusivity for an Expense/Saving checkbox pair -
+// checking one unchecks the other, and unchecking the only one
+// checked returns to "nothing selected". Returns a `select(type)`
+// function so callers can pre-select (edit modal) or reset (add
+// form after a successful submit) without simulating a click.
+function setupExpenseTypeToggle(expenseCheckbox, savingCheckbox, onSelect) {
+  if (!expenseCheckbox || !savingCheckbox) return { select: () => {} };
+
+  function select(type) {
+    // type=null clears both checkboxes back to "nothing selected"
+    // (used after a successful submit resets the form).
+    expenseCheckbox.checked = type === "expense";
+    savingCheckbox.checked = type === "saving";
+    onSelect(type);
+  }
+
+  expenseCheckbox.addEventListener("change", () => {
+    if (expenseCheckbox.checked) {
+      savingCheckbox.checked = false;
+      onSelect("expense");
+    } else {
+      onSelect(null);
+    }
+  });
+
+  savingCheckbox.addEventListener("change", () => {
+    if (savingCheckbox.checked) {
+      expenseCheckbox.checked = false;
+      onSelect("saving");
+    } else {
+      onSelect(null);
+    }
+  });
+
+  return { select };
+}
+
 // Appends a disabled, selected placeholder option to a <select>,
 // e.g. "Select a category" or "Select a payment method". Since the
 // field is `required`, the placeholder's empty value can never be
@@ -160,6 +212,11 @@ function setupAddCategory() {
     input.value = "";
     if (includeInBudgetCheckbox) includeInBudgetCheckbox.checked = true;
     await loadCategories("expenseCategory", data.id);
+    // loadCategories() sets the <select>'s value programmatically,
+    // which doesn't fire a native "change" event - re-run the
+    // validity check explicitly so the Add Expense button doesn't
+    // stay stuck disabled now that a category is actually selected.
+    updateAddExpenseSubmitState();
   });
 }
 
@@ -176,8 +233,54 @@ function setDefaultExpenseDatetime() {
   input.value = localTime.toISOString().slice(0, 16);
 }
 
+// Whether the add-expense form currently has everything required
+// to submit - drives whether #addExpenseSubmitBtn is enabled.
+function isAddExpenseFormValid() {
+  const amount = parseFloat(document.getElementById("expenseAmount").value);
+  const paymentMethod = document.getElementById("expensePaymentMethod").value;
+  const categoryId = document.getElementById("expenseCategory").value;
+  const datetimeValue = document.getElementById("expenseDatetime").value;
+
+  return (
+    !isNaN(amount) &&
+    amount > 0 &&
+    isValidPaymentMethod(paymentMethod) &&
+    !!categoryId &&
+    !!datetimeValue &&
+    (selectedExpenseType === "expense" || selectedExpenseType === "saving")
+  );
+}
+
+function updateAddExpenseSubmitState() {
+  const submitBtn = document.getElementById("addExpenseSubmitBtn");
+  if (submitBtn) submitBtn.disabled = !isAddExpenseFormValid();
+}
+
+// Wires the Expense/Saving toggle and the Add Expense button's
+// disabled-until-valid gating - required fields re-check on every
+// change, in addition to setupAddCategory()'s explicit re-check
+// after adding a custom category.
+function setupAddExpenseValidation() {
+  const addExpenseTypeToggle = setupExpenseTypeToggle(
+    document.getElementById("expenseTypeExpenseCheckbox"),
+    document.getElementById("expenseTypeSavingCheckbox"),
+    (type) => {
+      selectedExpenseType = type;
+      updateAddExpenseSubmitState();
+    }
+  );
+
+  ["expenseAmount", "expensePaymentMethod", "expenseCategory", "expenseDatetime"].forEach((id) => {
+    const field = document.getElementById(id);
+    if (field) field.addEventListener("input", updateAddExpenseSubmitState);
+    if (field) field.addEventListener("change", updateAddExpenseSubmitState);
+  });
+
+  return addExpenseTypeToggle;
+}
+
 // Wires up the add expense form submission.
-function setupExpenseForm() {
+function setupExpenseForm(addExpenseTypeToggle) {
   const form = document.getElementById("expenseForm");
   if (!form) return;
 
@@ -212,6 +315,10 @@ function setupExpenseForm() {
       showExpenseAlert("Please choose a date and time.");
       return;
     }
+    if (selectedExpenseType !== "expense" && selectedExpenseType !== "saving") {
+      showExpenseAlert("Please choose Expense or Saving.");
+      return;
+    }
 
     const { error } = await supabaseClient.from("expenses").insert({
       user_id: user.id,
@@ -221,6 +328,7 @@ function setupExpenseForm() {
       expense_datetime: new Date(datetimeValue).toISOString(),
       budget_month: window.getViewedMonthFirstDay(),
       description: description || null,
+      expense_type: selectedExpenseType,
     });
 
     if (error) {
@@ -232,6 +340,7 @@ function setupExpenseForm() {
     form.reset();
     document.getElementById("expensePaymentMethod").value = "Cash";
     setDefaultExpenseDatetime();
+    if (addExpenseTypeToggle) addExpenseTypeToggle.select(null);
     await loadExpenses();
   });
 }
@@ -270,6 +379,13 @@ function buildExpenseRow(expense) {
   categoryCell.appendChild(categoryName);
   categoryCell.appendChild(paymentMethod);
 
+  const typeCell = document.createElement("td");
+  const type = normalizeExpenseType(expense.expense_type);
+  const typeBadge = document.createElement("span");
+  typeBadge.className = `expense-type-badge expense-type-badge-${type}`;
+  typeBadge.textContent = type === "saving" ? "Saving" : "Expense";
+  typeCell.appendChild(typeBadge);
+
   const amountCell = document.createElement("td");
   amountCell.textContent = Number(expense.amount).toFixed(2);
 
@@ -296,6 +412,7 @@ function buildExpenseRow(expense) {
 
   tr.appendChild(dateCell);
   tr.appendChild(categoryCell);
+  tr.appendChild(typeCell);
   tr.appendChild(amountCell);
   tr.appendChild(descriptionCell);
   tr.appendChild(actionsCell);
@@ -322,7 +439,7 @@ window.loadExpenses = async function loadExpenses() {
     supabaseClient
       .from("expenses")
       .select(
-        "id, amount, payment_method, expense_datetime, description, category_id, categories(name)"
+        "id, amount, payment_method, expense_datetime, description, category_id, expense_type, categories(name)"
       )
       .eq("user_id", user.id)
       .eq("budget_month", viewedMonth)
@@ -347,7 +464,7 @@ window.loadExpenses = async function loadExpenses() {
   if (data.length === 0) {
     const emptyRow = document.createElement("tr");
     emptyRow.innerHTML =
-      '<td colspan="5" class="text-center text-muted">No expenses recorded this month yet.</td>';
+      '<td colspan="6" class="text-center text-muted">No expenses recorded this month yet.</td>';
     tbody.appendChild(emptyRow);
     await window.refreshBalance();
     renderExpenseCalendar();
@@ -679,6 +796,12 @@ function buildDayExpenseItem(expense) {
   categoryEl.className = "fw-semibold";
   categoryEl.textContent = expense.categories ? expense.categories.name : "-";
 
+  const dayItemType = normalizeExpenseType(expense.expense_type);
+  const dayItemTypeBadge = document.createElement("span");
+  dayItemTypeBadge.className = `expense-type-badge expense-type-badge-${dayItemType} ms-2`;
+  dayItemTypeBadge.textContent = dayItemType === "saving" ? "Saving" : "Expense";
+  categoryEl.appendChild(dayItemTypeBadge);
+
   const descriptionEl = document.createElement("div");
   descriptionEl.className = "text-muted small";
   descriptionEl.textContent = expense.description || expense.payment_method || "-";
@@ -831,6 +954,21 @@ function hideEditExpenseAlert() {
   alertBox.classList.add("d-none");
 }
 
+// Wires the edit modal's Expense/Saving toggle once, at load time
+// (mirrors setupAddExpenseValidation's toggle, minus the disabled-
+// button gating - the edit modal always opens with a valid,
+// pre-selected classification, so there's nothing to gate).
+let editExpenseTypeToggle = null;
+function setupEditExpenseTypeToggle() {
+  editExpenseTypeToggle = setupExpenseTypeToggle(
+    document.getElementById("editExpenseTypeExpenseCheckbox"),
+    document.getElementById("editExpenseTypeSavingCheckbox"),
+    (type) => {
+      selectedEditExpenseType = type;
+    }
+  );
+}
+
 // Opens the edit modal pre-filled with the given expense's data.
 async function openEditExpenseModal(expenseId) {
   const expense = expenseCache.get(expenseId);
@@ -840,6 +978,9 @@ async function openEditExpenseModal(expenseId) {
 
   document.getElementById("editExpenseId").value = expense.id;
   document.getElementById("editExpenseAmount").value = expense.amount;
+  if (editExpenseTypeToggle) {
+    editExpenseTypeToggle.select(normalizeExpenseType(expense.expense_type));
+  }
   const paymentMethodSelect = document.getElementById("editExpensePaymentMethod");
   const legacyOption = paymentMethodSelect.querySelector('[data-legacy-null="true"]');
   if (legacyOption) legacyOption.remove();
@@ -903,6 +1044,7 @@ function setupEditExpenseForm() {
         payment_method: paymentMethod || null,
         expense_datetime: new Date(datetimeValue).toISOString(),
         description: description || null,
+        expense_type: normalizeExpenseType(selectedEditExpenseType),
       })
       .eq("id", id)
       .eq("user_id", user.id);
@@ -944,6 +1086,21 @@ async function deleteExpense(expenseId) {
   await loadExpenses();
 }
 
+// Turns every [data-bs-toggle="tooltip"] element on the page into
+// a real Bootstrap tooltip (shown reliably on hover/focus), rather
+// than relying only on the native title attribute's inconsistent
+// browser tooltip timing. Safe to call once - elements inside the
+// edit modal are static markup present at load time even while
+// the modal itself is still hidden.
+function initExpenseHelpTooltips() {
+  if (typeof bootstrap === "undefined" || !bootstrap.Tooltip) return;
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+    if (!bootstrap.Tooltip.getInstance(el)) {
+      new bootstrap.Tooltip(el);
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // Only run on app.html, where the expense form exists.
   if (!document.getElementById("expenseForm")) return;
@@ -951,10 +1108,13 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCategories("expenseCategory");
   loadPaymentMethods("expensePaymentMethod");
   setupAddCategory();
-  setupExpenseForm();
+  const addExpenseTypeToggle = setupAddExpenseValidation();
+  setupExpenseForm(addExpenseTypeToggle);
   setDefaultExpenseDatetime();
   setupExpenseViewToggle();
   setupDayExpenseModal();
+  setupEditExpenseTypeToggle();
+  initExpenseHelpTooltips();
 
   loadExpenses();
   setupEditExpenseForm();
