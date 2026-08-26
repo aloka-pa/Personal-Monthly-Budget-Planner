@@ -1,5 +1,6 @@
 @import url("./calculator.css");
 @import url("./spending-streaks.css");
+@import url("./goal-progress.css");
 
 /* Shared controls in the upper application toolbar. */
 .header-utility-action {
