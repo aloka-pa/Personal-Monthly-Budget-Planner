@@ -125,6 +125,7 @@
       state.contributions.set(item.goal_id, group);
     });
     render();
+    window.WalletCheckGoalProgress?.refresh();
   }
 
   function openGoalModal(goal = null) {
