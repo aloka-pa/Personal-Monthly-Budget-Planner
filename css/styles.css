@@ -200,12 +200,11 @@ body.app-layout {
 }
 
 .sidebar-link {
-  min-height: 44px;
   display: flex;
   align-items: center;
   gap: 0.85rem;
   margin-bottom: 0.2rem;
-  padding: 0.65rem 0.75rem;
+  padding: 0.50rem 0.75rem;
   border-radius: 0.75rem;
   color: var(--text-muted);
   text-decoration: none;

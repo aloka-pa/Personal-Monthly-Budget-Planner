@@ -28,10 +28,6 @@
       <nav class="sidebar-nav">
         <div class="sidebar-section-label">Workspace</div>
         ${workspaceLinks.map(workspaceLink).join("")}
-        <div class="sidebar-section-label mt-4">Explore</div>
-        <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-receipt"></i><span class="sidebar-link-label">Payments</span><span class="coming-soon">Soon</span></a>
-        <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-graph-up-arrow"></i><span class="sidebar-link-label">Reports</span><span class="coming-soon">Soon</span></a>
-        <a class="sidebar-link disabled" href="#" aria-disabled="true" tabindex="-1"><i class="bi bi-gear"></i><span class="sidebar-link-label">Settings</span><span class="coming-soon">Soon</span></a>
       </nav>
       <div class="sidebar-footer">
         <button type="button" class="sidebar-link" id="logoutBtn"><i class="bi bi-box-arrow-right"></i><span class="sidebar-link-label">Logout</span></button>
