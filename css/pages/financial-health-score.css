@@ -23,12 +23,37 @@
   justify-content: space-between;
   padding: 0.6rem 0.8rem;
   border-radius: 0.75rem;
+  border: 1px solid var(--border);
   background: var(--surface-2);
   height: 100%;
 }
 
 .health-component-chip.is-unavailable {
   opacity: 0.6;
+}
+
+.health-component-chip.health-component-green {
+  background-color: var(--color-green-bg);
+  border-color: var(--color-green);
+}
+.health-component-chip.health-component-green .health-component-value {
+  color: var(--color-green);
+}
+
+.health-component-chip.health-component-yellow {
+  background-color: var(--color-yellow-bg);
+  border-color: var(--color-yellow);
+}
+.health-component-chip.health-component-yellow .health-component-value {
+  color: var(--color-yellow);
+}
+
+.health-component-chip.health-component-red {
+  background-color: var(--color-red-bg);
+  border-color: var(--color-red);
+}
+.health-component-chip.health-component-red .health-component-value {
+  color: var(--color-red);
 }
 
 .health-component-label {

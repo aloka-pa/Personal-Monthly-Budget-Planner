@@ -29,6 +29,15 @@
     totals[key] = (totals[key] || 0) + Number(amount || 0);
   }
 
+  // Rounds a monetary value to the nearest cent, correcting the
+  // floating-point drift that accumulates when several expense
+  // amounts are summed in JS - left unrounded, a day/month total
+  // sitting exactly at its target can drift a hair past it and
+  // wrongly break the streak.
+  function roundToCents(value) {
+    return Math.round(value * 100) / 100;
+  }
+
   function calculateSpendingStreaks({ categories, budgets, expenses, today = new Date() }) {
     const includedCategoryIds = new Set(
       categories
@@ -68,7 +77,7 @@
       if (monthlyBudget <= 0) break;
 
       const dailyTarget = monthlyBudget / daysInMonth(monthKey);
-      if ((spendingByDay[dayKey] || 0) > dailyTarget) break;
+      if (roundToCents(spendingByDay[dayKey] || 0) > dailyTarget) break;
 
       dailyStreak += 1;
       dayCursor.setDate(dayCursor.getDate() - 1);
@@ -78,8 +87,8 @@
     const monthCursor = new Date(localToday.getFullYear(), localToday.getMonth() - 1, 1);
     for (let checked = 0; checked < MAX_MONTHLY_LOOKBACK; checked += 1) {
       const monthKey = toMonthKey(monthCursor);
-      const monthlyBudget = budgetByMonth[monthKey] || 0;
-      if (monthlyBudget <= 0 || (spendingByMonth[monthKey] || 0) > monthlyBudget) break;
+      const monthlyBudget = roundToCents(budgetByMonth[monthKey] || 0);
+      if (monthlyBudget <= 0 || roundToCents(spendingByMonth[monthKey] || 0) > monthlyBudget) break;
 
       monthlyStreak += 1;
       monthCursor.setMonth(monthCursor.getMonth() - 1);
@@ -91,7 +100,7 @@
     const todayTarget = currentMonthlyBudget > 0
       ? currentMonthlyBudget / daysInMonth(currentMonthKey)
       : null;
-    const todaySpent = spendingByDay[todayKey] || 0;
+    const todaySpent = roundToCents(spendingByDay[todayKey] || 0);
 
     return {
       dailyStreak,

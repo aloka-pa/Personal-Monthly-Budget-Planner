@@ -36,6 +36,16 @@
     return Math.min(Math.max(value, min), max);
   }
 
+  // Rounds a monetary value to the nearest cent, correcting the
+  // floating-point drift that accumulates when several expense
+  // amounts are summed in JS (e.g. 799.99 + 797.99 can land as
+  // 1597.9800000000002 instead of exactly 1597.98) - left
+  // unrounded, a spending total sitting exactly at its budget or
+  // daily target can drift a hair past it and wrongly fail.
+  function roundToCents(value) {
+    return Math.round(value * 100) / 100;
+  }
+
   function toLocalDateKey(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -183,7 +193,7 @@
     let budgetedSpending = 0;
 
     budgetByCategory.forEach((budgetAmount, categoryId) => {
-      const spending = spendingByCategory.get(categoryId) || 0;
+      const spending = roundToCents(spendingByCategory.get(categoryId) || 0);
       const adherence = spending <= budgetAmount ? 100 : (100 * budgetAmount) / spending;
       weightedNumerator += adherence * spending;
       weightedDenominator += spending;
@@ -255,7 +265,7 @@
     let successfulDays = 0;
     for (let day = 1; day <= daysInMonth; day += 1) {
       const cursor = new Date(monthStart.getFullYear(), monthStart.getMonth(), day);
-      const daySpend = spendingByDay.get(toLocalDateKey(cursor)) || 0;
+      const daySpend = roundToCents(spendingByDay.get(toLocalDateKey(cursor)) || 0);
       if (daySpend <= dailyTarget) successfulDays += 1;
     }
 
@@ -373,6 +383,16 @@
     return "text-danger";
   }
 
+  // Same thresholds as getScoreColorClass, but names a chip-level
+  // class (border + background + text color together) matching
+  // this app's own color-banding convention - see .calendar-day-green
+  // /-yellow/-red in css/pages/expenses.css for the same pattern.
+  function getScoreBandClass(roundedScore) {
+    if (roundedScore >= 75) return "health-component-green";
+    if (roundedScore >= 40) return "health-component-yellow";
+    return "health-component-red";
+  }
+
   // ------------------------------------------------------------
   // Month orchestration
   // ------------------------------------------------------------
@@ -484,9 +504,9 @@
 
     const rounded = Math.round(component.score);
     col.innerHTML = `
-      <div class="health-component-chip">
+      <div class="health-component-chip ${getScoreBandClass(rounded)}">
         <span class="health-component-label">${label}</span>
-        <span class="health-component-value ${getScoreColorClass(rounded)}">${rounded}</span>
+        <span class="health-component-value">${rounded}</span>
       </div>`;
     return col;
   }

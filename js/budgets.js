@@ -56,6 +56,14 @@ function hideEditBudgetAlert() {
   alertBox.classList.add("d-none");
 }
 
+// Rounds a monetary value to the nearest cent, correcting the
+// floating-point drift that accumulates when several expense
+// amounts are summed in JS (e.g. 799.99 + 797.99 can land as
+// 1597.9800000000002 instead of exactly 1597.98).
+function roundToCents(value) {
+  return Math.round(value * 100) / 100;
+}
+
 function getUsageMeta(budgetAmount, spentAmount) {
   if (budgetAmount === null) {
     return {
@@ -87,8 +95,15 @@ function getUsageMeta(budgetAmount, spentAmount) {
     };
   }
 
+  // overBudget is decided from the rounded remaining amount (a
+  // subtraction), not from usagePercent (a division) - the two can
+  // disagree by a hair of floating-point drift right at the
+  // boundary, which previously showed "Over Budget" even when the
+  // Remaining column still displayed a positive amount.
+  const remaining = roundToCents(budgetAmount - spentAmount);
+  const overBudget = remaining < 0;
+
   const usagePercent = (spentAmount / budgetAmount) * 100;
-  const overBudget = usagePercent > 100;
   const widthPercent = Math.min(Math.max(usagePercent, 0), 100);
 
   let barClass = "bg-success";
@@ -98,10 +113,22 @@ function getUsageMeta(budgetAmount, spentAmount) {
     barClass = "bg-warning";
   }
 
+  // While money still remains (even LKR 0.01), the label must never
+  // round up to "100%" - that would read as fully/over spent. Only
+  // show 100% once remaining has actually reached exactly 0.
+  let label;
+  if (overBudget) {
+    label = "Over Budget";
+  } else if (remaining === 0) {
+    label = "100%";
+  } else {
+    label = `${Math.min(99, Math.floor(usagePercent))}%`;
+  }
+
   return {
     usagePercent,
     widthPercent,
-    label: overBudget ? "Over Budget" : `${Math.round(usagePercent)}%`,
+    label,
     barClass,
     overBudget,
   };
@@ -218,7 +245,7 @@ function buildBudgetRows(categories, expenses, budgetRows) {
       ? budgetByCategory[categoryId]
       : null;
     const spentAmount = spentByCategory[categoryId] || 0;
-    const remainingAmount = budgetAmount === null ? null : budgetAmount - spentAmount;
+    const remainingAmount = budgetAmount === null ? null : roundToCents(budgetAmount - spentAmount);
     const usageMeta = getUsageMeta(budgetAmount, spentAmount);
 
     return {
@@ -279,14 +306,28 @@ function renderOverviewCards(rows) {
   const rowsWithBudget = budgetEligibleRows.filter((row) => row.budgetAmount !== null);
   const overallBudget = rowsWithBudget.reduce((sum, row) => sum + row.budgetAmount, 0);
   const totalSpent = budgetEligibleRows.reduce((sum, row) => sum + row.spentAmount, 0);
-  const remainingBudget = overallBudget - totalSpent;
+  const remainingBudget = roundToCents(overallBudget - totalSpent);
   const usagePercent = overallBudget > 0 ? (totalSpent / overallBudget) * 100 : 0;
 
   document.getElementById("overallBudgetAmount").textContent = formatCurrency(overallBudget);
   document.getElementById("totalSpentAmount").textContent = formatCurrency(totalSpent);
   document.getElementById("remainingBudgetAmount").textContent = formatCurrency(remainingBudget);
-  document.getElementById("budgetUsagePercent").textContent =
-    overallBudget > 0 ? `${Math.round(usagePercent)}%` : "\u2014";
+
+  // Same rule as the per-category rows: never round the displayed
+  // percentage up to "100%" while money still remains. A genuine
+  // overspend (remainingBudget < 0) still shows its real percentage
+  // (e.g. "107%"), unchanged from before.
+  let usagePercentLabel = "\u2014";
+  if (overallBudget > 0) {
+    if (remainingBudget < 0) {
+      usagePercentLabel = `${Math.round(usagePercent)}%`;
+    } else if (remainingBudget === 0) {
+      usagePercentLabel = "100%";
+    } else {
+      usagePercentLabel = `${Math.min(99, Math.floor(usagePercent))}%`;
+    }
+  }
+  document.getElementById("budgetUsagePercent").textContent = usagePercentLabel;
 
   const remainingCard = document.getElementById("remainingBudgetCard");
   remainingCard.classList.remove("bg-success", "bg-warning", "bg-danger", "text-white");
