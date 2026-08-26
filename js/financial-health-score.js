@@ -27,6 +27,12 @@
     spending: "Spending Consistency",
     goals: "Goals",
   };
+  const COMPONENT_HELP = {
+    budgeting: "How well you stayed within your category budgets.",
+    saving: "How much of your income you saved, compared to a healthy target.",
+    spending: "How evenly your spending was spread out, instead of coming in big spikes.",
+    goals: "How on-track your savings goals are for their target dates.",
+  };
 
   function isFiniteNumber(value) {
     return typeof value === "number" && Number.isFinite(value);
@@ -489,14 +495,23 @@
   // ------------------------------------------------------------
   // Rendering
   // ------------------------------------------------------------
-  function componentChip(label, component) {
+  function componentChip(label, help, component) {
     const col = document.createElement("div");
     col.className = "col-6";
+
+    const helpIcon = `<i
+        class="bi bi-question-circle-fill"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="${help}"
+        tabindex="0"
+        aria-label="What does ${label} mean?"
+      ></i>`;
 
     if (!component.available) {
       col.innerHTML = `
         <div class="health-component-chip is-unavailable">
-          <span class="health-component-label">${label}</span>
+          <span class="health-component-label">${label} ${helpIcon}</span>
           <span class="health-component-value text-muted">—</span>
         </div>`;
       return col;
@@ -505,7 +520,7 @@
     const rounded = Math.round(component.score);
     col.innerHTML = `
       <div class="health-component-chip ${getScoreBandClass(rounded)}">
-        <span class="health-component-label">${label}</span>
+        <span class="health-component-label">${label} ${helpIcon}</span>
         <span class="health-component-value">${rounded}</span>
       </div>`;
     return col;
@@ -555,8 +570,11 @@
 
     componentsEl.innerHTML = "";
     COMPONENT_KEYS.forEach((key) => {
-      componentsEl.appendChild(componentChip(COMPONENT_LABELS[key], current.components[key]));
+      componentsEl.appendChild(
+        componentChip(COMPONENT_LABELS[key], COMPONENT_HELP[key], current.components[key])
+      );
     });
+    window.WalletCheckTooltips?.init(componentsEl);
 
     explanationEl.innerHTML = `
       <h3 class="h6 mb-2">${explanation.heading}</h3>

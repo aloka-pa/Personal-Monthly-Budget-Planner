@@ -39,5 +39,25 @@
     themeToggle.addEventListener("click", () => window.WalletCheckTheme?.toggleTheme());
   }
 
-  document.addEventListener("DOMContentLoaded", setupHeaderUtilities);
+  // Turns every [data-bs-toggle="tooltip"] help icon on the page into a
+  // real Bootstrap tooltip. Same mechanism as the Expense/Saving type
+  // tooltips (see initExpenseHelpTooltips in expenses.js) - reused here
+  // so every page can init contextual help icons without duplicating the
+  // Bootstrap.Tooltip wiring. Safe to call repeatedly (e.g. after a
+  // section re-renders): already-initialized elements are skipped.
+  function initHelpTooltips(root) {
+    if (typeof bootstrap === "undefined" || !bootstrap.Tooltip) return;
+    (root || document).querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+      if (!bootstrap.Tooltip.getInstance(el)) {
+        new bootstrap.Tooltip(el);
+      }
+    });
+  }
+
+  window.WalletCheckTooltips = { init: initHelpTooltips };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setupHeaderUtilities();
+    initHelpTooltips();
+  });
 })();

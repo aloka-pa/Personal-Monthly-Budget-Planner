@@ -46,7 +46,17 @@
       <div class="col-12 col-md-6 col-xl-3">
         <div class="card shadow-sm h-100">
           <div class="card-body text-center">
-            <h2 class="h6 text-uppercase text-muted mb-2">Overall Budget</h2>
+            <h2 class="h6 text-uppercase text-muted mb-2">
+              Overall Budget
+              <i
+                class="bi bi-question-circle-fill"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="The sum of the monthly budgets you've set across all categories."
+                tabindex="0"
+                aria-label="What is Overall Budget?"
+              ></i>
+            </h2>
             <p class="h4 mb-0" id="overallBudgetAmount">0.00</p>
           </div>
         </div>
@@ -62,7 +72,9 @@
       <div class="col-12 col-md-6 col-xl-3">
         <div class="card shadow-sm h-100" id="remainingBudgetCard">
           <div class="card-body text-center">
-            <h2 class="h6 text-uppercase mb-2">Remaining Budget</h2>
+            <h2 class="h6 text-uppercase mb-2">
+              Remaining Budget
+            </h2>
             <p class="h4 mb-0" id="remainingBudgetAmount">0.00</p>
           </div>
         </div>
@@ -70,7 +82,9 @@
       <div class="col-12 col-md-6 col-xl-3">
         <div class="card shadow-sm h-100">
           <div class="card-body text-center">
-            <h2 class="h6 text-uppercase text-muted mb-2">Budget Usage %</h2>
+            <h2 class="h6 text-uppercase text-muted mb-2">
+              Budget Usage %
+            </h2>
             <p class="h4 mb-0" id="budgetUsagePercent">0%</p>
           </div>
         </div>
@@ -104,7 +118,17 @@
                   <button class="sort-btn" type="button" data-sort="category">Category <span class="sort-indicator">↕</span></button>
                 </th>
                 <th>
-                  <button class="sort-btn" type="button" data-sort="budget">Monthly Budget <span class="sort-indicator">↕</span></button>
+                  <span class="d-inline-flex align-items-center gap-1">
+                    <button class="sort-btn" type="button" data-sort="budget">Monthly Budget <span class="sort-indicator">↕</span></button>
+                    <i
+                      class="bi bi-question-circle-fill"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="The amount you plan to spend in this category each month."
+                      tabindex="0"
+                      aria-label="What is Monthly Budget?"
+                    ></i>
+                  </span>
                 </th>
                 <th>
                   <button class="sort-btn" type="button" data-sort="spent">Spent <span class="sort-indicator">↕</span></button>
