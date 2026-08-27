@@ -1,0 +1,296 @@
+/* ------------------------------------------------------------
+   Financial Health Score - Methodology & FAQ page
+
+   This page is intentionally standalone (opened in a new tab from
+   the Dashboard): no app sidebar, no shared header utilities, no
+   auth guard. It gets its own minimal topbar and a centered,
+   fixed-width reading column instead of the app-shell layout, so
+   it doesn't reserve sidebar space it doesn't have.
+   ------------------------------------------------------------ */
+
+body.guide-page {
+  min-height: 100vh;
+}
+
+.guide-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: saturate(180%) blur(18px);
+}
+
+.guide-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.guide-topbar-brand .brand-mark {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  font-size: 1rem;
+}
+
+/* Centered reading column - this is the fix for text stranded on
+   the left with a huge empty gap on wide screens: the whole shell
+   is width-limited, so cards (and the text inside them) fill it
+   naturally instead of stretching edge-to-edge. */
+.guide-shell {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+/* Quick-jump chips at the top of the page */
+.guide-quicknav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.guide-quicknav a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.guide-quicknav a:hover,
+.guide-quicknav a:focus-visible {
+  border-color: var(--color-blue);
+  color: var(--color-blue);
+}
+
+/* Every anchored section needs room under the sticky topbar when jumped to */
+.guide-section {
+  scroll-margin-top: 76px;
+}
+
+.guide-section-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background: var(--color-blue-bg);
+  color: var(--color-blue);
+  font-size: 1.1rem;
+  flex: 0 0 auto;
+}
+
+.guide-subheading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+
+.guide-subheading .bi {
+  color: var(--color-blue);
+  margin-right: 0.35rem;
+}
+
+/* Readable, literal formula blocks - monospace so numbers/operators
+   are unambiguous, but wraps on small screens instead of forcing
+   horizontal scroll on a whole sentence-like formula. */
+.formula-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color-blue);
+  border-radius: 0.6rem;
+  padding: 0.75rem 1rem;
+  margin: 0.6rem 0 0.9rem;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.formula-box .formula-result {
+  color: var(--color-blue);
+  font-weight: 600;
+}
+
+/* Worked-example boxes: same idea as formula-box but framed as a
+   walk-through rather than a bare formula. */
+.guide-example {
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  margin: 0.75rem 0;
+  font-size: 0.88rem;
+}
+
+.guide-example-label {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+/* Small colored note strip for callouts ("this is intended, not a bug",
+   availability caveats, etc.) */
+.guide-callout {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+  background: var(--color-blue-bg);
+  border: 1px solid var(--color-blue);
+}
+
+.guide-callout .bi {
+  color: var(--color-blue);
+  font-size: 1rem;
+  margin-top: 0.1rem;
+}
+
+.guide-callout.is-warning {
+  background: var(--color-yellow-bg);
+  border-color: var(--color-yellow);
+}
+.guide-callout.is-warning .bi {
+  color: var(--color-yellow);
+}
+
+/* Component weight bars in the Score Overview table */
+.guide-weight-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.guide-weight-name {
+  flex: 0 0 11rem;
+  font-weight: 500;
+  font-size: 0.88rem;
+}
+
+.guide-weight-track {
+  flex: 1 1 auto;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.guide-weight-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-blue);
+}
+
+.guide-weight-value {
+  flex: 0 0 3rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+/* Score range legend */
+.guide-range-swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+.guide-range-swatch.at-risk { background: var(--color-red); }
+.guide-range-swatch.needs-attention { background: var(--color-yellow); }
+.guide-range-swatch.fair { background: var(--color-yellow); }
+.guide-range-swatch.good { background: var(--color-green); }
+.guide-range-swatch.excellent { background: var(--color-green); }
+
+/* Bootstrap accordion re-themed to match app surfaces (light + dark) */
+.guide-accordion {
+  --bs-accordion-color: var(--text);
+  --bs-accordion-bg: var(--surface);
+  --bs-accordion-border-color: var(--border);
+  --bs-accordion-border-radius: 0.75rem;
+  --bs-accordion-inner-border-radius: 0.65rem;
+  --bs-accordion-btn-color: var(--text);
+  --bs-accordion-btn-bg: var(--surface);
+  --bs-accordion-btn-focus-box-shadow: 0 0 0 0.2rem var(--color-blue-bg);
+  --bs-accordion-active-color: var(--color-blue);
+  --bs-accordion-active-bg: var(--color-blue-bg);
+  --bs-accordion-body-padding-x: 1.1rem;
+  --bs-accordion-body-padding-y: 0.9rem;
+}
+
+.guide-accordion .accordion-item {
+  margin-bottom: 0.6rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.guide-accordion .accordion-item:last-child {
+  margin-bottom: 0;
+}
+
+.guide-accordion .accordion-button {
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.guide-accordion .accordion-button::after {
+  filter: none;
+}
+
+[data-theme="dark"] .guide-accordion .accordion-button::after {
+  filter: invert(1) grayscale(100%) brightness(1.8);
+}
+
+.guide-accordion .accordion-body {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* Back-to-dashboard footer link */
+.guide-footer-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+  .guide-weight-name {
+    flex-basis: 8rem;
+    font-size: 0.82rem;
+  }
+}

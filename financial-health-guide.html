@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wallet Check | Financial Health Score Guide</title>
+  <link rel="icon" type="image/svg+xml" href="images/wallet2.svg">
+
+  <!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
+  <script>
+    (function () {
+      var theme = localStorage.getItem("wc-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <!-- Bootstrap 5 CSS (CDN) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+
+  <!-- Custom styles -->
+  <link href="css/styles.css" rel="stylesheet" />
+  <link href="css/pages/financialHealthGuide.css" rel="stylesheet" />
+</head>
+<body class="guide-page">
+
+  <header class="guide-topbar">
+    <a class="guide-topbar-brand" href="dashboard.html">
+      <span class="brand-mark" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
+      <span>Wallet Check</span>
+    </a>
+    <button class="header-action" id="guideThemeToggle" type="button" title="Toggle dark/light mode" aria-label="Toggle color theme" data-theme-toggle>
+      <i class="bi bi-moon-stars" data-theme-icon aria-hidden="true"></i>
+      <span class="visually-hidden" data-theme-label>Dark mode</span>
+    </button>
+  </header>
+
+  <main class="guide-shell">
+    <h1 class="page-heading mb-1">Financial Health Score</h1>
+    <p class="page-description mb-4">Methodology &amp; FAQ — exactly how your score is calculated.</p>
+
+    <!-- INTRO -->
+    <section class="card shadow-sm mb-4 guide-section" id="top" aria-labelledby="guideIntroTitle">
+      <div class="card-body">
+        <a class="btn btn-sm btn-outline-secondary mb-3" href="dashboard.html"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+        <h2 class="h4 mb-2" id="guideIntroTitle">Understanding your score</h2>
+        <p class="guide-intro-lead mb-2">
+          The Financial Health Score on your Dashboard is a single number from 0–100 that summarizes four
+          separate habits: how well you stuck to your budgets, how much you saved, how evenly you spread out
+          your spending, and how you're keeping up with your savings goals.
+        </p>
+        <p class="guide-intro-lead mb-0">
+          This page exists so you never have to take the score on faith. Every formula, benchmark, and rule
+          below is exactly what Wallet Check uses to produce the number you see — nothing is simplified in a
+          way that changes what it means. If a section feels technical, the plain-language explanation above
+          each formula is enough on its own to understand what's going on.
+        </p>
+
+        <nav class="guide-quicknav" aria-label="Jump to section">
+          <a href="#how-it-works">How it's calculated</a>
+          <a href="#weights">Score weights</a>
+          <a href="#budgeting">Budgeting</a>
+          <a href="#saving">Saving</a>
+          <a href="#spending">Spending Consistency</a>
+          <a href="#goals">Goals</a>
+          <a href="#overall">Overall score</a>
+          <a href="#ranges">Score ranges</a>
+          <a href="#affects">What affects my score</a>
+          <a href="#why-changed">Why did it change?</a>
+          <a href="#unavailable">Why is it unavailable?</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- HOW IS THE SCORE CALCULATED -->
+    <section class="card shadow-sm mb-4 guide-section" id="how-it-works" aria-labelledby="howItWorksTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="howItWorksTitle"><i class="bi bi-gear-fill guide-section-icon me-2"></i>How is the score calculated?</h2>
+
+        <p class="guide-subheading"><i class="bi bi-calendar3"></i>Which month does it cover?</p>
+        <p>
+          Your score always covers the <strong>most recently fully completed calendar month</strong> — never
+          the month currently in progress, since it hasn't finished yet and would be an unfair, incomplete
+          picture. For example, if today is any day in August, your score covers <strong>July 1–31</strong>,
+          and it's compared against <strong>June</strong>.
+        </p>
+
+        <p class="guide-subheading"><i class="bi bi-puzzle"></i>Four independent components</p>
+        <p>
+          Budgeting, Saving, Spending Consistency, and Goals are each calculated completely separately, from
+          different parts of your data, using the rules below. They're then combined into one Overall Score
+          using the fixed weights shown in <a href="#weights">Score Weights</a>.
+        </p>
+
+        <p class="guide-subheading"><i class="bi bi-exclamation-circle"></i>When data is missing</p>
+        <p class="mb-0">
+          If a component can't be calculated for the month — for example you have no goals, or no budgets
+          configured — it's shown as <strong>"—"</strong> instead of being scored. It is never silently
+          counted as a 0. The Overall Score is then calculated using only the components you do have,
+          reweighted so they still add up fairly. The full rule is in <a href="#overall">Overall Score</a>.
+        </p>
+      </div>
+    </section>
+
+    <!-- SCORE WEIGHTS -->
+    <section class="card shadow-sm mb-4 guide-section" id="weights" aria-labelledby="weightsTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="weightsTitle"><i class="bi bi-bar-chart-steps guide-section-icon me-2"></i>Score weights</h2>
+        <p>Each component contributes this share of your Overall Score, when all four are available:</p>
+
+        <div class="guide-weight-row">
+          <span class="guide-weight-name">Budgeting</span>
+          <span class="guide-weight-track"><span class="guide-weight-fill" style="width:30%"></span></span>
+          <span class="guide-weight-value">30%</span>
+        </div>
+        <div class="guide-weight-row">
+          <span class="guide-weight-name">Saving</span>
+          <span class="guide-weight-track"><span class="guide-weight-fill" style="width:30%"></span></span>
+          <span class="guide-weight-value">30%</span>
+        </div>
+        <div class="guide-weight-row">
+          <span class="guide-weight-name">Spending Consistency</span>
+          <span class="guide-weight-track"><span class="guide-weight-fill" style="width:20%"></span></span>
+          <span class="guide-weight-value">20%</span>
+        </div>
+        <div class="guide-weight-row mb-0">
+          <span class="guide-weight-name">Goals</span>
+          <span class="guide-weight-track"><span class="guide-weight-fill" style="width:20%"></span></span>
+          <span class="guide-weight-value">20%</span>
+        </div>
+
+        <p class="small text-muted mt-3 mb-0">
+          Budgeting and Saving carry more weight because they reflect your core month-to-month cash flow.
+          Spending Consistency and Goals carry less. These weights are fixed by Wallet Check — you can't
+          change them.
+        </p>
+      </div>
+    </section>
+
+    <!-- 1. BUDGETING -->
+    <section class="card shadow-sm mb-4 guide-section" id="budgeting" aria-labelledby="budgetingTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="budgetingTitle"><i class="bi bi-cash-stack guide-section-icon me-2"></i>1. Budgeting Score <span class="text-muted small">— weight 30%</span></h2>
+
+        <p class="guide-subheading">What it measures</p>
+        <p>
+          How closely your spending matched the monthly budgets you set for each category, and whether your
+          spending actually happened in categories that have a budget in the first place.
+        </p>
+        <p>
+          Only categories with <strong>"Include in Budget"</strong> switched on are counted, and only entries
+          you logged as an <strong>Expense</strong> — anything logged as a <strong>Saving</strong> entry (money
+          you deliberately set aside, like a transfer into a savings account) is never treated as spending,
+          here or anywhere else in the score.
+        </p>
+
+        <p class="guide-subheading">How it is calculated</p>
+        <p>Budgeting combines two measurements:</p>
+
+        <p><strong>a) Category Adherence</strong> — for each budgeted category, compares what you spent to what you budgeted:</p>
+        <div class="formula-box">Spent at or under budget  →  Adherence = 100
+Spent over budget         →  Adherence = 100 × (Budget ÷ Amount Spent)</div>
+        <p>
+          The further over budget you go, the lower that category's Adherence falls. Every category's
+          Adherence is then combined into one number, <strong>weighted by how much you actually spent in
+          each category</strong> — so a category you barely touch doesn't count as much as the category
+          holding most of your spending.
+        </p>
+        <div class="formula-box">Weighted Adherence =
+    Σ (Category Adherence × Category Spending)
+    ─────────────────────────────────────────────
+              Σ (Category Spending)</div>
+        <div class="guide-example">
+          <span class="guide-example-label">Example</span>
+          Food: budget 1,000, spent 1,200 → Adherence 83.3<br>
+          Bills: budget 3,000, spent 3,000 → Adherence 100<br>
+          Weighted Adherence = (83.3 × 1,200 + 100 × 3,000) ÷ 4,200 = <span class="formula-result">95.2</span>
+        </div>
+        <p class="small text-muted">If you had budgets configured but spent nothing at all in those categories, this part scores 100 — there was nothing to overspend.</p>
+
+        <p><strong>b) Budget Coverage</strong> — checks whether your spending stayed inside categories that have a configured budget, instead of leaking into budget-tracked categories that don't have one set up yet:</p>
+        <div class="formula-box">Budget Coverage =
+    Spending in categories that have a configured budget
+    ──────────────────────────────────────────────────────── × 100
+    All spending in "Include in Budget" categories</div>
+        <p class="small text-muted">If there was no spending at all in "Include in Budget" categories that month, Coverage = 100.</p>
+
+        <p>These two combine into the final Budgeting Score:</p>
+        <div class="formula-box">Budgeting Score = (Weighted Adherence × 0.80) + (Budget Coverage × 0.20)</div>
+
+        <p class="guide-subheading">What affects it</p>
+        <ul>
+          <li>Overspending any budgeted category lowers Adherence — the category with the biggest overspend (weighted by amount) hurts the most.</li>
+          <li>Spending in an "Include in Budget" category that has <em>no</em> configured budget lowers Coverage, even if you didn't technically overspend anywhere.</li>
+          <li>A category budgeted at 0 that still has spending pulls that category's Adherence all the way to 0.</li>
+        </ul>
+
+        <div class="guide-callout"><i class="bi bi-info-circle-fill"></i><span>
+          <strong>Availability:</strong> Budgeting is only shown when at least one "Include in Budget" category
+          has a positive budget configured for that month. Otherwise it shows "—", not 0.
+        </span></div>
+      </div>
+    </section>
+
+    <!-- 2. SAVING -->
+    <section class="card shadow-sm mb-4 guide-section" id="saving" aria-labelledby="savingTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="savingTitle"><i class="bi bi-piggy-bank-fill guide-section-icon me-2"></i>2. Saving Score <span class="text-muted small">— weight 30%</span></h2>
+
+        <p class="guide-subheading">What it measures</p>
+        <p>The share of your income you kept — i.e. didn't spend — that month.</p>
+
+        <p class="guide-subheading">Benchmark</p>
+        <p>
+          Wallet Check treats a <strong>20% savings rate</strong> as the target for a perfect score. This
+          benchmark is fixed by the app; it isn't something you configure.
+        </p>
+
+        <p class="guide-subheading">How it is calculated</p>
+        <p><strong>Step 1 — Savings Rate:</strong></p>
+        <div class="formula-box">Savings Rate = (Income − Expense-type Spending) ÷ Income</div>
+        <p class="small text-muted">
+          "Expense-type Spending" only includes entries logged as <strong>Expense</strong> that month. Entries
+          logged as <strong>Saving</strong> (money you deliberately set aside — e.g. a transfer to a savings
+          account, or an insurance payment) are <em>not</em> subtracted here. That money is treated as
+          retained, not spent, so it naturally raises your effective savings rate.
+        </p>
+        <p><strong>Step 2 — Saving Score:</strong></p>
+        <div class="formula-box">Saving Score = (Savings Rate ÷ 20%) × 100, kept within 0–100</div>
+
+        <table class="table table-sm w-auto">
+          <thead><tr><th>Savings rate</th><th>Saving Score</th></tr></thead>
+          <tbody>
+            <tr><td>0% or less</td><td>0</td></tr>
+            <tr><td>5%</td><td>25</td></tr>
+            <tr><td>10%</td><td>50</td></tr>
+            <tr><td>15%</td><td>75</td></tr>
+            <tr><td>20% or more</td><td>100</td></tr>
+          </tbody>
+        </table>
+
+        <div class="guide-callout"><i class="bi bi-info-circle-fill"></i><span>
+          <strong>Availability:</strong> Saving is only shown when you've entered a positive income amount for
+          that month. Otherwise it shows "—" — a missing income entry is never scored as a 0.
+        </span></div>
+      </div>
+    </section>
+
+    <!-- 3. SPENDING CONSISTENCY -->
+    <section class="card shadow-sm mb-4 guide-section" id="spending" aria-labelledby="spendingTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="spendingTitle"><i class="bi bi-graph-up guide-section-icon me-2"></i>3. Spending Consistency Score <span class="text-muted small">— weight 20%</span></h2>
+
+        <p class="guide-subheading">What it measures</p>
+        <p>
+          Whether your day-to-day spending stayed level and predictable across the month, rather than a few
+          big spending days pushing you over — even if your total for the month looked fine.
+        </p>
+
+        <p class="guide-subheading">How it is calculated</p>
+        <p>First, Wallet Check works out how much you'd need to spend per day to use your budgets evenly:</p>
+        <div class="formula-box">Daily Target =
+    Sum of your "Include in Budget" category budgets
+    ───────────────────────────────────────────────────
+              Number of days in the month</div>
+        <p>Then, for every day in the month:</p>
+        <div class="formula-box">Daily Spend = that day's Expense-type spending in "Include in Budget" categories
+
+A day passes when:  Daily Spend ≤ Daily Target
+(a day with no spending always passes)</div>
+        <div class="formula-box">Spending Consistency Score =
+    (Days that passed ÷ Days in month) × 100</div>
+        <div class="guide-example">
+          <span class="guide-example-label">Example</span>
+          Monthly budget 60,000 over 30 days → Daily Target 2,000<br>
+          27 out of 30 days stayed at or under 2,000<br>
+          Score = 27 ÷ 30 × 100 = <span class="formula-result">90</span>
+        </div>
+
+        <p class="guide-subheading">What lowers it</p>
+        <p class="mb-0">
+          Any day where your budget-tracked Expense spending went over the daily target — including a single
+          large one-off purchase. A big purchase only fails the one day it happened on; it doesn't reduce the
+          days that follow.
+        </p>
+
+        <div class="guide-callout"><i class="bi bi-info-circle-fill"></i><span>
+          <strong>Availability:</strong> needs the same thing Budgeting does — at least one positive budget on
+          an "Include in Budget" category that month. Otherwise "—".
+        </span></div>
+      </div>
+    </section>
+
+    <!-- 4. GOALS -->
+    <section class="card shadow-sm mb-4 guide-section" id="goals" aria-labelledby="goalsTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="goalsTitle"><i class="bi bi-bullseye guide-section-icon me-2"></i>4. Goals Score <span class="text-muted small">— weight 20%</span></h2>
+
+        <p class="guide-subheading">What it measures</p>
+        <p>
+          How much you contributed toward your <strong>active</strong> savings goals that month, compared to
+          how much those goals combined needed that month to stay on schedule. "Active" means any goal you
+          haven't marked completed.
+        </p>
+
+        <p class="guide-subheading">How expected monthly contributions are determined</p>
+        <p>Every active goal gets an "expected monthly pace" — how much it should ideally receive each month:</p>
+        <div class="formula-box">Goal has a target date:
+    Expected Pace = Target Amount ÷ months between goal creation and target date
+
+Goal has no target date (or an unusable one):
+    Expected Pace = Target Amount ÷ 12   (a flat, assumed one-year pace)</div>
+        <p class="small text-muted">
+          The 12-month fallback exists so a goal without a deadline still has a reasonable, non-zero pace
+          instead of being excluded — the same idea as Saving's flat 20% benchmark.
+        </p>
+        <p>All active goals' expected paces are added together into one combined total:</p>
+        <div class="formula-box">Expected Monthly Pace Total = Σ (Expected Pace) across all active goals</div>
+
+        <p class="guide-subheading">How it is calculated</p>
+        <p>
+          Every contribution dated within the score month is added up across <em>all</em> your active
+          goals — it doesn't matter which specific goal received it, or when that goal was created:
+        </p>
+        <div class="formula-box">Contributed Total = Σ (contributions dated in the score month) across active goals
+
+Goals Score = (Contributed Total ÷ Expected Monthly Pace Total) × 100, kept within 0–100</div>
+
+        <div class="guide-example">
+          <span class="guide-example-label">Example</span>
+          Goal A: target 50,000, 10 months to go → pace 5,000/mo<br>
+          Goal B: target 20,000, 8 months to go → pace 2,500/mo<br>
+          Goal C: target 5,000, 3 months to go → pace 1,667/mo<br>
+          Combined expected pace = 9,167<br>
+          You contributed 15,000 this month, all to Goal A<br>
+          Goals Score = 15,000 ÷ 9,167 × 100 = <span class="formula-result">100</span> (capped)
+        </div>
+
+        <div class="guide-callout"><i class="bi bi-lightbulb-fill"></i><span>
+          Because contributions and expected pace are added up <em>together</em> across all your goals (not
+          scored per goal and averaged), one large contribution to a single goal can fully cover the month's
+          expected pace even if your other goals received nothing that month. This is intentional — it
+          rewards the total amount you put toward your goals, not how evenly you spread it across them.
+        </span></div>
+
+        <div class="guide-callout is-warning"><i class="bi bi-exclamation-triangle-fill"></i><span>
+          <strong>A note on completed goals:</strong> whether a goal counts as "active" is based on its
+          <em>current</em> completed status, even when looking back at a past month. Marking a goal completed
+          today removes it from every month's Goals calculation, including months you've already seen scored —
+          so an old month's Goals score can shift slightly if you recalculate it after completing a goal. This
+          is a deliberate trade-off: Wallet Check doesn't keep a history of exactly when a goal was completed,
+          so it uses the best information available rather than guessing.
+        </span></div>
+
+        <div class="guide-callout"><i class="bi bi-info-circle-fill"></i><span>
+          <strong>Availability:</strong> needs at least one active goal with a usable, positive target amount.
+          Otherwise "—".
+        </span></div>
+      </div>
+    </section>
+
+    <!-- OVERALL SCORE -->
+    <section class="card shadow-sm mb-4 guide-section" id="overall" aria-labelledby="overallTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="overallTitle"><i class="bi bi-calculator-fill guide-section-icon me-2"></i>Overall Score</h2>
+
+        <p>
+          When all four components are available, they're combined using the weights from
+          <a href="#weights">Score Weights</a>:
+        </p>
+        <div class="formula-box">Overall Score =
+    (Budgeting × 30%) + (Saving × 30%) + (Spending Consistency × 20%) + (Goals × 20%)</div>
+
+        <p class="guide-subheading">When a component is missing</p>
+        <p>
+          A component that shows "—" is <strong>removed entirely</strong> from the calculation — it is never
+          treated as a 0. The remaining components' weights are scaled up so they still add to a fair total:
+        </p>
+        <div class="formula-box">Overall Score =
+    Σ (Available Component Score × its Weight)
+    ─────────────────────────────────────────────
+         Σ (Weights of the available components only)</div>
+
+        <div class="guide-example">
+          <span class="guide-example-label">Example — Spending Consistency unavailable that month</span>
+          Budgeting: 80 (weight 30) · Saving: 70 (weight 30) · Goals: 90 (weight 20)<br>
+          Overall = (80×30 + 70×30 + 90×20) ÷ (30+30+20) = 6,300 ÷ 80 = <span class="formula-result">78.75 → 79</span>
+        </div>
+
+        <p class="guide-subheading">Minimum data needed to show an Overall Score</p>
+        <p>An Overall Score only appears when <strong>both</strong> of these are true:</p>
+        <ol>
+          <li>At least one of Budgeting or Saving is available (Wallet Check treats these as the two "core" habits), <strong>and</strong></li>
+          <li>At least one more component (of any of the four) is also available.</li>
+        </ol>
+        <p class="small text-muted">
+          If the minimum isn't met, no Overall Score is shown — just "—" — but whichever individual
+          components you do have are still displayed. See <a href="#unavailable">Why is my score unavailable?</a>
+        </p>
+
+        <p class="guide-subheading">The "vs last month" indicator</p>
+        <p class="mb-0">
+          The small up/down arrow next to your score compares this month's Overall Score to last month's. It
+          only appears when <strong>both</strong> months have a valid Overall Score <strong>and</strong> the
+          exact same set of components was available in both. If your data coverage changed between the two
+          months (for example, you added a budget this month that you didn't have configured last month), the
+          comparison is hidden and replaced with <em>"Comparison unavailable — data coverage changed"</em> —
+          rather than showing a number that isn't really comparing like with like.
+        </p>
+      </div>
+    </section>
+
+    <!-- SCORE RANGES -->
+    <section class="card shadow-sm mb-4 guide-section" id="ranges" aria-labelledby="rangesTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="rangesTitle"><i class="bi bi-speedometer2 guide-section-icon me-2"></i>Score ranges</h2>
+        <p>Your rounded Overall Score is labeled using these ranges:</p>
+        <table class="table table-sm">
+          <thead><tr><th>Score</th><th>Label</th></tr></thead>
+          <tbody>
+            <tr><td>0–39</td><td><span class="guide-range-swatch at-risk"></span>At risk</td></tr>
+            <tr><td>40–59</td><td><span class="guide-range-swatch needs-attention"></span>Needs attention</td></tr>
+            <tr><td>60–74</td><td><span class="guide-range-swatch fair"></span>Fair</td></tr>
+            <tr><td>75–89</td><td><span class="guide-range-swatch good"></span>Good</td></tr>
+            <tr><td>90–100</td><td><span class="guide-range-swatch excellent"></span>Excellent</td></tr>
+          </tbody>
+        </table>
+        <p class="small text-muted mb-0">Individual components use the same color banding (red / yellow / green) on the Dashboard, using the same cut-offs.</p>
+      </div>
+    </section>
+
+    <!-- WHAT AFFECTS MY SCORE -->
+    <section class="card shadow-sm mb-4 guide-section" id="affects" aria-labelledby="affectsTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="affectsTitle"><i class="bi bi-list-check guide-section-icon me-2"></i>What affects my score?</h2>
+        <p>Under "What affected your score" on your Dashboard, Wallet Check picks from exactly these statements, only showing the ones that actually apply to your month:</p>
+        <ul>
+          <li><strong>"Savings rate was below the 20% benchmark."</strong> — Saving is available and your rate was under 20%.</li>
+          <li><strong>"One or more categories exceeded their configured budgets."</strong> — Budgeting is available and your Weighted Adherence was under 100.</li>
+          <li><strong>"Some budget-enabled spending occurred in categories without budgets."</strong> — Budgeting is available and your Budget Coverage was under 100.</li>
+          <li><strong>"A number of days exceeded the daily spending target."</strong> — Spending Consistency is available and at least one day went over target.</li>
+          <li><strong>"Contributions to active goals fell short of their combined expected monthly pace."</strong> — Goals is available and your Goals Score was under 100.</li>
+        </ul>
+        <p class="mb-0">If none of these apply, you'll see <strong>"Your finances were on track this month."</strong> instead.</p>
+      </div>
+    </section>
+
+    <!-- WHY DID MY SCORE CHANGE -->
+    <section class="card shadow-sm mb-4 guide-section" id="why-changed" aria-labelledby="whyChangedTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="whyChangedTitle"><i class="bi bi-arrow-left-right guide-section-icon me-2"></i>Why did my score change?</h2>
+        <p>
+          When a valid month-to-month comparison exists (see <a href="#overall">Overall Score</a>) and your
+          rounded score actually moved, the Dashboard switches to cause-and-effect wording:
+        </p>
+        <ul>
+          <li><strong>"Your score improved because…"</strong> followed by the specific components that scored higher than last month.</li>
+          <li><strong>"Your score decreased because…"</strong> followed by the specific components that scored lower than last month.</li>
+        </ul>
+        <p class="mb-0">
+          Only components that actually moved in that direction are listed — for example, if your score
+          dropped but your Saving component improved, Saving will not be blamed for the drop. When there's no
+          valid comparison (or the score didn't move), you'll see the neutral <a href="#affects">"What affected
+          your score"</a> list instead, describing your current month on its own terms rather than implying a
+          trend that can't be proven.
+        </p>
+      </div>
+    </section>
+
+    <!-- WHY IS MY SCORE UNAVAILABLE -->
+    <section class="card shadow-sm mb-4 guide-section" id="unavailable" aria-labelledby="unavailableTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="unavailableTitle"><i class="bi bi-question-diamond-fill guide-section-icon me-2"></i>Why is my score unavailable?</h2>
+        <p>Each component needs a minimum amount of data before it can be calculated at all:</p>
+        <table class="table table-sm">
+          <thead><tr><th>Component</th><th>Available when…</th></tr></thead>
+          <tbody>
+            <tr><td>Budgeting</td><td>At least one "Include in Budget" category has a positive budget that month.</td></tr>
+            <tr><td>Saving</td><td>You've entered a positive income amount for that month.</td></tr>
+            <tr><td>Spending Consistency</td><td>Same requirement as Budgeting — a positive budget on an "Include in Budget" category.</td></tr>
+            <tr><td>Goals</td><td>You have at least one active (not completed) goal with a usable, positive target amount.</td></tr>
+          </tbody>
+        </table>
+        <p>
+          A missing component always shows <strong>"—"</strong>, never a 0 — a 0 would unfairly suggest bad
+          financial behavior when really the data just isn't there yet.
+        </p>
+        <p class="mb-0">
+          The <strong>Overall Score</strong> itself needs at least one of Budgeting/Saving available, plus one
+          more component of any kind — otherwise it's also shown as "—", even though your individual available
+          components still display normally.
+        </p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="card shadow-sm mb-4 guide-section" id="faq" aria-labelledby="faqTitle">
+      <div class="card-body">
+        <h2 class="h5 mb-3" id="faqTitle"><i class="bi bi-patch-question-fill guide-section-icon me-2"></i>Frequently asked questions</h2>
+
+        <div class="accordion guide-accordion" id="guideFaqAccordion">
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">What is the Financial Health Score?</button></h3>
+            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                A 0–100 summary of how you handled your money in the most recently completed month, combining
+                how well you stuck to your budgets, how much you saved, how evenly you spread your spending
+                out, and how you contributed to your savings goals.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">Is a higher score always better?</button></h3>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Generally, yes — a higher score reflects healthier habits across the areas it measures. That
+                said, it's a summary based on the rules on this page, not a complete picture of your finances,
+                so use it alongside your own judgment, not instead of it.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">How often is my score calculated?</button></h3>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Every time you open your Dashboard, freshly calculated from your data for the latest fully
+                completed month. It isn't calculated on a fixed schedule and isn't stored — it always reflects
+                your current data.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">Why is my Goals score 0 instead of "—"?</button></h3>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                These mean different things. <strong>"—"</strong> means Goals couldn't be calculated at all —
+                you have no active goal with a usable target amount. A literal <strong>0</strong> means Goals
+                <em>was</em> calculated, but none of your active goals received a contribution dated in that
+                month, so your Contributed Total was 0 against a positive Expected Monthly Pace. See
+                <a href="#goals">Goals Score</a>.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">Why did my Saving score decrease?</button></h3>
+            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Your Savings Rate for the month dropped compared to before — either your income was lower,
+                your Expense-type spending was higher, or both. Remember: money you logged as a
+                <strong>Saving</strong> entry (not Expense) is never counted against you here, so moving money
+                into savings never hurts this score.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">Why did my Budgeting score decrease?</button></h3>
+            <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Either you overspent one or more budgeted categories (lowering Weighted Adherence), or more of
+                your spending landed in "Include in Budget" categories that don't have a budget configured
+                (lowering Budget Coverage) — or both. See <a href="#budgeting">Budgeting Score</a> for the exact
+                formulas.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">Why did my Spending Consistency score decrease?</button></h3>
+            <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                More days than before went over your Daily Target — this can happen even from a single large
+                one-off purchase on one day. Spreading a big planned expense across a couple of smaller
+                payments, when possible, can help keep more days under target.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">Can I improve my score?</button></h3>
+            <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Yes — each component responds to a specific habit: stay under your category budgets and make
+                sure your regular spending categories have a budget configured (Budgeting); keep genuine
+                spending under 80% of your income to clear the 20% savings benchmark (Saving); spread spending
+                out instead of concentrating it on a few days (Spending Consistency); and contribute to your
+                active goals roughly in line with their expected monthly pace (Goals).
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">Why does my score differ between months?</button></h3>
+            <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Each month is calculated completely independently, from that month's own income, spending, and
+                goal contributions. Different months naturally have different numbers behind them, so
+                different scores are expected — it isn't a running average or a trend line.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq10">What happens if I don't have enough data?</button></h3>
+            <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Any component that can't be calculated shows "—" rather than a misleading 0, and if too few
+                components are available (see <a href="#unavailable">Why is my score unavailable?</a>), the
+                Overall Score itself shows "—" too — with a note that there isn't enough data yet, while still
+                showing whichever components you do have.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq11">Can my score be 0?</button></h3>
+            <div id="faq11" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                An individual <em>available</em> component can land on a literal 0 in extreme cases (for
+                example, no contributions at all toward goals that had a positive expected pace). But
+                unavailable components never drag your score toward 0 — they're excluded from the calculation
+                entirely rather than counted as 0, so a genuine Overall Score of 0 would require every
+                available component to independently score at the very bottom.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq12">What does "Needs attention" mean?</button></h3>
+            <div id="faq12" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                It's the label for an Overall Score between 40 and 59 — see the full list in
+                <a href="#ranges">Score ranges</a>. It means your score is in the lower half; check the
+                <a href="#affects">"What affected your score"</a> list on your Dashboard for the specific
+                reasons behind it that month.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq13">Does "Include in Budget" affect my Saving score?</button></h3>
+            <div id="faq13" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                No. "Include in Budget" only affects Budgeting and Spending Consistency. Saving looks at
+                <em>all</em> your Expense-type spending regardless of that setting — an expense in a category
+                excluded from budgeting still reduces how much of your income you kept, so it still counts
+                against Saving.
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h3 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq14">Why doesn't a "Saving"-type entry count as spending anywhere?</button></h3>
+            <div id="faq14" class="accordion-collapse collapse" data-bs-parent="#guideFaqAccordion">
+              <div class="accordion-body">
+                Marking an entry as <strong>Saving</strong> (instead of Expense) is a statement that the money
+                was set aside, not consumed — so it's consistently excluded from Budgeting, Budget Coverage,
+                Spending Consistency, and Saving's own spending subtraction. This keeps the score from
+                penalizing you for deliberately moving money into savings or paying for something like an
+                annual insurance premium in one lump sum.
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="guide-footer-nav mb-4">
+      <a class="btn btn-outline-secondary" href="dashboard.html"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+      <a class="btn btn-outline-primary" href="#top"><i class="bi bi-arrow-up"></i> Back to top</a>
+    </div>
+
+  </main>
+
+  <!-- Bootstrap 5 JS bundle (CDN) - powers the FAQ accordion only -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Theme toggle only - this page is standalone and has no sidebar, auth guard, or Supabase data of its own -->
+  <script src="js/theme.js"></script>
+</body>
+</html>
