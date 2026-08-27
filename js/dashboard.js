@@ -212,6 +212,7 @@ function renderCategoryTrendChart(months, categoryTotalsByMonth, categoryNames) 
     data: { labels, datasets },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,

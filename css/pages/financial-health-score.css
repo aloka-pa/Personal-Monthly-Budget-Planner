@@ -1,4 +1,18 @@
 /* ------------------------------------------------------------
+   Category Spending Trend Chart
+   ------------------------------------------------------------ */
+.chart-container {
+  position: relative;
+  height: 320px;
+}
+
+@media (max-width: 575.98px) {
+  .chart-container {
+    height: 240px;
+  }
+}
+
+/* ------------------------------------------------------------
    Financial Health Score
    ------------------------------------------------------------ */
 .health-score-overall {
