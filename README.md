@@ -10,8 +10,9 @@ Anyone interested in exploring the application can use the following demo accoun
 
 - **Email:** `isabellataylortest@gmail.com`
 - **Password:** `Test@123_Isabella`
+- Note: Populated data available for July and August 2026
 
-Feel free to log in and explore the available features.
+Feel free to log in and explore the available features. 
 
 ## Development Status
 
@@ -46,7 +47,7 @@ The application has grown to include category budgets, savings goals, planned ex
 | 15 | Spending Streaks and Statistics | Show consecutive under-budget days and months plus today's spending, daily target, and on-track status. <img width="1629" height="435" alt="image" src="https://github.com/user-attachments/assets/466257db-801b-4848-8571-35d733fe7824" />|
 | 16 | In-App Calculator | Open a keyboard-accessible calculator for arithmetic, percentages, sign changes, decimals, and operator precedence from any workspace page. <img width="1630" height="550" alt="image" src="https://github.com/user-attachments/assets/e407f11d-8a18-4cfe-9113-4340d3d2a027" />|
 | 17 | Quick Goal View | Quickly view active financial goals, their current progress, and completion percentages directly from the header. Goals are prioritized by those closest to completion. <img width="1585" height="533" alt="image" src="https://github.com/user-attachments/assets/05fad15f-85cf-446a-a147-83eb78bd8ddf" />|
-| 18 | Financial Health Score | Evaluate the latest completed month using budgeting, saving, spending consistency, and goal progress, with data-aware weighting.  <br> Compare the result with the immediately preceding month when both scores use the same available components, and provide a short explanation of the factors affecting the result. <br> • For formulas, availability rules, historical cutoffs, and edge cases, see [Financial Health Score Logic](docs/Financial-Health-Score-Logic.md). <img width="1583" height="515" alt="image" src="https://github.com/user-attachments/assets/bf216f12-4cfc-424d-980b-4398250b64d2" />
+| 18 | Financial Health Score | Evaluate the latest completed month using budgeting, saving, spending consistency, and goal progress, with data-aware weighting.  <br> Compare the result with the immediately preceding month when both scores use the same available components, and provide a short explanation of the factors affecting the result. <br> • For formulas, availability rules, historical cutoffs, and edge cases, see [Financial Health Score Logic](docs/Financial-Health-Score-Logic.md). <img width="1582" height="510" alt="image" src="https://github.com/user-attachments/assets/e4d9e0ba-6130-4cb7-bf9a-3419c60d0e40" />|
 | 19 | Expense vs. Saving Classification | Classify each expense as genuine spending or money set aside as savings, so savings entries count toward the Saving Score instead of dragging it down, while still being excluded from Budgeting, Spending Consistency, Budgets, and spending streaks—balances always reflect the full amount either way. <img width="1585" height="861" alt="image" src="https://github.com/user-attachments/assets/38ccca64-f43f-4934-8339-4f60b2b52138" />|
 
 
