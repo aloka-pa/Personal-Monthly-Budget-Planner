@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wallet Check | Financial Health Score Guide</title>
   <link rel="icon" type="image/svg+xml" href="images/wallet2.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#00b7c2">
 
   <!-- Apply saved theme before first paint to avoid a flash of the wrong theme -->
   <script>
@@ -687,5 +691,6 @@ Goals Score = (Contributed Total ÷ Expected Monthly Pace Total) × 100, kept wi
 
   <!-- Theme toggle only - this page is standalone and has no sidebar, auth guard, or Supabase data of its own -->
   <script src="js/theme.js"></script>
+  <script src="js/register-sw.js"></script>
 </body>
 </html>
