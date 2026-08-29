@@ -100,7 +100,7 @@
   function renderStatusTotals() {
     const totalFor = (status) => state.items
       .filter((item) => item.status === status)
-      .reduce((sum, item) => sum + Number(item.estimated_amount), 0);
+      .reduce((sum, item) => sum + Number(item.planned_amount), 0);
     byId("plannerConfirmedTotal").textContent = window.formatCurrency(totalFor("confirmed"));
     byId("plannerTentativeTotal").textContent = window.formatCurrency(totalFor("tentative"));
     byId("plannerCompletedTotal").textContent = window.formatCurrency(totalFor("completed"));
@@ -121,9 +121,15 @@
     categoryCell.dataset.label = "Category";
     categoryCell.textContent = categoryName || "Uncategorized";
 
-    const amountCell = document.createElement("td");
-    amountCell.dataset.label = "Amount";
-    amountCell.textContent = window.formatCurrency(item.estimated_amount);
+    const plannedAmountCell = document.createElement("td");
+    plannedAmountCell.dataset.label = "Planned Amount";
+    plannedAmountCell.textContent = window.formatCurrency(item.planned_amount);
+
+    const actualAmountCell = document.createElement("td");
+    actualAmountCell.dataset.label = "Actual Amount";
+    actualAmountCell.textContent = item.actual_amount == null
+      ? "—"
+      : window.formatCurrency(item.actual_amount);
 
     const statusCell = document.createElement("td");
     statusCell.dataset.label = "Status";
@@ -137,7 +143,7 @@
     actionsCell.dataset.label = "Actions";
     actionsCell.innerHTML = '<button class="btn btn-sm btn-outline-secondary me-2" type="button" data-action="edit">Edit</button><button class="btn btn-sm btn-outline-danger" type="button" data-action="delete">Delete</button>';
 
-    row.append(descriptionCell, categoryCell, amountCell, statusCell, actionsCell);
+    row.append(descriptionCell, categoryCell, plannedAmountCell, actualAmountCell, statusCell, actionsCell);
     return row;
   }
 
@@ -146,8 +152,12 @@
     const body = byId("plannerTableBody");
     body.innerHTML = "";
     visible.forEach((item) => body.appendChild(buildTableRow(item)));
-    const total = visible.reduce((sum, item) => sum + Number(item.estimated_amount), 0);
-    byId("plannerFilteredTotal").textContent = window.formatCurrency(total);
+    const plannedTotal = visible.reduce((sum, item) => sum + Number(item.planned_amount), 0);
+    const actualTotal = visible.reduce((sum, item) => (
+      item.actual_amount == null ? sum : sum + Number(item.actual_amount)
+    ), 0);
+    byId("plannerFilteredPlannedTotal").textContent = window.formatCurrency(plannedTotal);
+    byId("plannerFilteredActualTotal").textContent = window.formatCurrency(actualTotal);
     renderStatusTotals();
     byId("plannerLoading").classList.add("d-none");
     const empty = visible.length === 0;
@@ -174,7 +184,7 @@
     byId("plannerEmpty").classList.remove("d-flex");
     const { data, error } = await supabaseClient
       .from("planned_expenses")
-      .select("id, month, title, estimated_amount, category_id, status, notes, created_at, categories(name)")
+      .select("id, month, title, planned_amount, actual_amount, category_id, status, notes, created_at, categories(name)")
       .eq("user_id", state.user.id)
       .eq("month", requestedMonth)
       .order("created_at", { ascending: false });
@@ -193,15 +203,38 @@
       ? `${prefix}${name.charAt(0).toUpperCase()}${name.slice(1)}`
       : name);
     const description = field("plannedDescription").value.trim();
-    const amountValue = field("plannedAmount").value;
-    const amount = Number(amountValue);
+    const plannedAmountValue = field("plannedAmount").value;
+    const plannedAmount = Number(plannedAmountValue);
+    const actualAmountValue = field("plannedActualAmount").value.trim();
     const categoryId = field("plannedCategory").value;
     const status = field("plannedStatus").value;
     if (!description) return { error: "Description is required." };
-    if (amountValue === "" || !Number.isFinite(amount) || amount < 0.01) return { error: "Amount must be greater than zero." };
+    if (plannedAmountValue === "" || !Number.isFinite(plannedAmount) || plannedAmount < 0.01) {
+      return { error: "Planned amount must be greater than zero." };
+    }
     if (!statusOrder.includes(status)) return { error: "Choose a valid status." };
     if (!categoryId || !state.categories.some((category) => String(category.id) === categoryId)) return { error: "Choose a valid category." };
-    return { payload: { title: description, estimated_amount: amount, category_id: categoryId, status } };
+
+    let actualAmount = null;
+    if (actualAmountValue !== "") {
+      actualAmount = Number(actualAmountValue);
+      if (!Number.isFinite(actualAmount) || actualAmount < 0.01) {
+        return { error: "Actual amount must be greater than zero." };
+      }
+    }
+    if (status === "completed" && actualAmount === null) {
+      return { error: "Actual amount is required when status is Completed." };
+    }
+
+    return {
+      payload: {
+        title: description,
+        planned_amount: plannedAmount,
+        actual_amount: actualAmount,
+        category_id: categoryId,
+        status,
+      },
+    };
   }
 
   async function createPlannedExpense(event) {
@@ -225,7 +258,8 @@
   function openEditModal(item) {
     hideAlert("editPlannerAlert");
     byId("editPlannedId").value = item.id;
-    byId("editPlannedAmount").value = item.estimated_amount;
+    byId("editPlannedAmount").value = item.planned_amount;
+    byId("editPlannedActualAmount").value = item.actual_amount == null ? "" : item.actual_amount;
     populateCategorySelect("editPlannedCategory", item.category_id);
     byId("editPlannedStatus").value = item.status;
     byId("editPlannedDescription").value = item.title;

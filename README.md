@@ -50,7 +50,6 @@ The application has grown to include category budgets, savings goals, planned ex
 | 18 | Financial Health Score | Evaluate the latest completed month using budgeting, saving, spending consistency, and goal progress, with data-aware weighting.  <br> Compare the result with the immediately preceding month when both scores use the same available components, and provide a short explanation of the factors affecting the result. <br> • For formulas, availability rules, historical cutoffs, and edge cases, see [Financial Health Score Logic](docs/Financial-Health-Score-Logic.md). <img width="1582" height="510" alt="image" src="https://github.com/user-attachments/assets/e4d9e0ba-6130-4cb7-bf9a-3419c60d0e40" />|
 | 19 | Expense vs. Saving Classification | Classify each expense as genuine spending or money set aside as savings, so savings entries count toward the Saving Score instead of dragging it down, while still being excluded from Budgeting, Spending Consistency, Budgets, and spending streaks—balances always reflect the full amount either way. <img width="1585" height="861" alt="image" src="https://github.com/user-attachments/assets/38ccca64-f43f-4934-8339-4f60b2b52138" />|
 | 20 | Financial Health Guide | A dedicated guide explaining how the Financial Health Score is calculated, including its components, weighting logic, data requirements, scoring rules, and edge cases, to make the score transparent and easy to understand. Link: https://aloka-pa.github.io/Personal-Monthly-Budget-Planner/financial-health-guide.html <img width="1887" height="853" alt="image" src="https://github.com/user-attachments/assets/99925622-77b5-4bd2-b60f-2b17786c90a6" />|
-| 21 | Installable PWA | Install Wallet Check to a device home screen or desktop as a standalone app via a web manifest, with a service worker that caches the static app shell for offline loading while leaving Supabase requests untouched. |
 
 
 
@@ -66,7 +65,6 @@ The application has grown to include category budgets, savings goals, planned ex
 | Chart.js 4 | Historical category-spending line chart |
 | Supabase JS 2 | Browser client for authentication and database access |
 | Supabase Auth and PostgreSQL | User accounts, relational finance data, constraints, and Row Level Security |
-| Web App Manifest + Service Worker | Installable, offline-capable Progressive Web App shell |
 | GitHub Pages | Static application hosting |
 
 Bootstrap, Bootstrap Icons, Chart.js, and Supabase JS are loaded from CDNs. The repository does not use npm, a JavaScript framework, or a compilation step.
