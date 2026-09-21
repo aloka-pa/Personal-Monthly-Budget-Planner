@@ -656,6 +656,12 @@ function toDateKey(date) {
   return `${year}-${month}-${day}`;
 }
 
+// Groups by the expense's real calendar date (expense_datetime), not
+// its budget_month - an expense keeps its actual date on the calendar
+// even when it was logged under a different month's budget (e.g. an
+// Aug 28 expense logged under the September budget still shows on
+// Aug 28). renderExpenseCalendar() is responsible for extending the
+// grid far enough to give every such date a cell.
 function buildExpensesByDay() {
   const map = new Map();
   expenseCache.forEach((expense) => {
@@ -685,11 +691,12 @@ function buildCalendarDayCell(cellDate, inCurrentMonth, today) {
   const dateKey = toDateKey(cellDate);
   const dayExpenses = expensesByDayCache.get(dateKey) || [];
 
-  // Prev/next month cells are dimmed either way, but if this
-  // viewed month's expenses include one dated in the adjacent
-  // month (expense_datetime can fall outside its budget_month),
-  // that data is already in expensesByDayCache - show it instead
-  // of leaving the cell blank.
+  // Prev/next month cells are dimmed either way, but if this viewed
+  // month's expenses include one actually dated in the adjacent month
+  // (expense_datetime can fall outside its budget_month), that data is
+  // already in expensesByDayCache and the grid was sized by
+  // renderExpenseCalendar() to include this cell for it - show it
+  // instead of leaving the cell blank.
   const hasData = inCurrentMonth || dayExpenses.length > 0;
 
   if (!inCurrentMonth) {
@@ -749,15 +756,34 @@ function renderExpenseCalendar() {
   const year = start.getFullYear();
   const month = start.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const leadingBlanks = (start.getDay() + 6) % 7; // Monday-first offset
-  const totalCells = Math.ceil((leadingBlanks + daysInMonth) / 7) * 7;
+
+  // The grid always covers the viewed month's own days. It never adds
+  // decorative empty leading/trailing cells for the adjacent months -
+  // an outside-month cell only ever appears when a cached expense is
+  // actually dated there (expense_datetime can differ from
+  // budget_month, e.g. an Aug 28 expense logged under the September
+  // budget), so the earliest/latest such real date becomes the grid's
+  // edge. This means the grid's start doesn't line up with the
+  // Monday column when there's a leading date like that - trading
+  // strict weekday-column alignment for never showing an empty cell.
+  let gridStart = new Date(year, month, 1);
+  let gridEnd = new Date(year, month, daysInMonth);
+
+  expensesByDayCache.forEach((_dayExpenses, key) => {
+    const [keyYear, keyMonth, keyDay] = key.split("-").map(Number);
+    const date = new Date(keyYear, keyMonth - 1, keyDay);
+    if (date < gridStart) gridStart = date;
+    if (date > gridEnd) gridEnd = date;
+  });
+
+  const totalCells = Math.round((gridEnd - gridStart) / 86400000) + 1;
   const today = new Date();
 
   grid.innerHTML = "";
 
   for (let i = 0; i < totalCells; i++) {
-    const cellDate = new Date(year, month, i - leadingBlanks + 1);
-    const inCurrentMonth = cellDate.getMonth() === month;
+    const cellDate = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+    const inCurrentMonth = cellDate.getFullYear() === year && cellDate.getMonth() === month;
     grid.appendChild(buildCalendarDayCell(cellDate, inCurrentMonth, today));
   }
 }
