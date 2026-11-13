@@ -331,6 +331,60 @@ function toggleChartEmptyState(canvas, emptyMessageId, hasData) {
   return hasData;
 }
 
+// ------------------------------------------------------------
+// Remembered legend choices
+// ------------------------------------------------------------
+// Clicking a legend item hides/shows that category's series. The
+// hidden labels are saved in this browser's localStorage, per signed-in
+// user and per chart, so the choice survives a refresh. Storage can be
+// unavailable (private mode, blocked site data) - then the charts simply
+// fall back to showing every series.
+
+let dashboardUserId = null;
+
+function getHiddenSeriesKey(chartKey) {
+  return `wc-dashboard-hidden-${chartKey}-${dashboardUserId || "anon"}`;
+}
+
+function loadHiddenSeries(chartKey) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(getHiddenSeriesKey(chartKey)) || "[]");
+    return new Set(Array.isArray(saved) ? saved : []);
+  } catch (err) {
+    return new Set();
+  }
+}
+
+function saveHiddenSeries(chartKey, chart) {
+  const hiddenLabels = chart.data.datasets
+    .filter((dataset, index) => !chart.isDatasetVisible(index))
+    .map((dataset) => dataset.label);
+  try {
+    localStorage.setItem(getHiddenSeriesKey(chartKey), JSON.stringify(hiddenLabels));
+  } catch (err) {
+    // Storage unavailable - the choice just won't persist.
+  }
+}
+
+// Marks saved-hidden datasets as hidden before the chart is created.
+function applyHiddenSeries(chartKey, datasets) {
+  const hidden = loadHiddenSeries(chartKey);
+  datasets.forEach((dataset) => {
+    dataset.hidden = hidden.has(dataset.label);
+  });
+  return datasets;
+}
+
+// Legend config: keep Chart.js's default click toggle, then save the result.
+function rememberedLegend(chartKey) {
+  return {
+    onClick(event, legendItem, legend) {
+      Chart.defaults.plugins.legend.onClick.call(this, event, legendItem, legend);
+      saveHiddenSeries(chartKey, legend.chart);
+    },
+  };
+}
+
 // Renders the line chart: one line per category, x-axis = months.
 function renderCategoryTrendChart(months, categoryTotalsByMonth, categoryNames) {
   const canvas = document.getElementById("categoryTrendChart");
@@ -350,9 +404,12 @@ function renderCategoryTrendChart(months, categoryTotalsByMonth, categoryNames) 
 
   new Chart(canvas, {
     type: "line",
-    data: { labels, datasets },
+    data: { labels, datasets: applyHiddenSeries("spending", datasets) },
     options: {
       responsive: true,
+      plugins: {
+        legend: rememberedLegend("spending"),
+      },
       scales: {
         y: {
           beginAtZero: true,
@@ -398,11 +455,12 @@ function renderSavingsTrendChart(months, savingTotalsByMonth, categoryNames) {
   };
 
   new Chart(canvas, {
-    data: { labels, datasets: [...barDatasets, cumulativeDataset] },
+    data: { labels, datasets: applyHiddenSeries("savings", [...barDatasets, cumulativeDataset]) },
     options: {
       responsive: true,
       interaction: { mode: "index", intersect: false },
       plugins: {
+        legend: rememberedLegend("savings"),
         tooltip: {
           callbacks: {
             label: (context) => `${context.dataset.label}: ${window.formatCurrency(context.parsed.y)}`,
@@ -475,6 +533,7 @@ async function loadDashboard() {
     data: { user },
   } = await supabaseClient.auth.getUser();
   if (!user) return;
+  dashboardUserId = user.id;
 
   await window.getUserCurrency();
 
