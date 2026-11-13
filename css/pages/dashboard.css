@@ -37,5 +37,53 @@
   .dashboard-tabs .nav-link {
     width: 100%;
     justify-content: center;
+    padding-left: 0.4rem;
+    padding-right: 0.4rem;
+    font-size: 0.85rem;
+    text-align: center;
   }
+}
+
+/* Monthly Summary tab: per-month tiles with an expense/savings pie */
+
+.dashboard-month-pie {
+  width: 140px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.dashboard-month-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+}
+
+.dashboard-legend-swatch {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+/* Must match the pie slice colors set in dashboard.js renderMonthPie(). */
+.dashboard-legend-expense {
+  background-color: var(--color-gray);
+  opacity: 0.55;
+}
+
+.dashboard-legend-saving {
+  background-color: var(--color-blue);
+  opacity: 0.85;
+}
+
+.dashboard-month-empty {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

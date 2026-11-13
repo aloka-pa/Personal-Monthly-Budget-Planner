@@ -521,16 +521,24 @@ window.refreshBalance = async function refreshBalance() {
   }
 
   const income = incomeRow ? Number(incomeRow.amount) : 0;
-  const totalExpenses = Array.from(expenseCache.values()).reduce(
-    (sum, expense) => sum + Number(expense.amount),
-    0
-  );
+
+  // "Spent" stays the full amount out (expenses + savings), since savings
+  // always reduce Balance; the Expenses and Savings tiles break it down.
+  let expenseOnlyTotal = 0;
+  let savingTotal = 0;
+  Array.from(expenseCache.values()).forEach((expense) => {
+    if (normalizeExpenseType(expense.expense_type) === "saving") savingTotal += Number(expense.amount);
+    else expenseOnlyTotal += Number(expense.amount);
+  });
+  const totalExpenses = expenseOnlyTotal + savingTotal;
   const balance = income - totalExpenses;
   const percentSpent = income > 0 ? (totalExpenses / income) * 100 : totalExpenses > 0 ? 100 : 0;
 
   document.getElementById("incomeTileAmount").textContent = window.formatCurrency(income);
   document.getElementById("spentTileAmount").textContent = window.formatCurrency(totalExpenses);
   document.getElementById("balanceAmount").textContent = window.formatCurrency(balance);
+  document.getElementById("expensesTileAmount").textContent = window.formatCurrency(expenseOnlyTotal);
+  document.getElementById("savingsTileAmount").textContent = window.formatCurrency(savingTotal);
 
   balanceCard.classList.remove("bg-success", "bg-warning", "bg-danger", "text-white");
 

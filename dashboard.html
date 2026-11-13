@@ -52,6 +52,11 @@
           <i class="bi bi-piggy-bank" aria-hidden="true"></i> Savings
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summaryPane" type="button" role="tab" aria-controls="summaryPane" aria-selected="false">
+          <i class="bi bi-calendar3" aria-hidden="true"></i> Monthly Summary
+        </button>
+      </li>
     </ul>
 
     <div class="tab-content" id="dashboardTabContent">
@@ -94,12 +99,15 @@
           </div>
         </section>
       </div>
-    </div>
 
-    <!-- MONTHLY TILES (shown on both tabs) -->
-    <h2 class="h6 text-muted mb-3">Monthly Summary</h2>
-    <div class="row g-2 mb-4" id="monthTileGrid">
-      <div class="col-12 text-center text-muted">Loading months...</div>
+      <!-- MONTHLY SUMMARY TAB -->
+      <div class="tab-pane fade" id="summaryPane" role="tabpanel" aria-labelledby="summary-tab" tabindex="0">
+        <h2 class="h6 text-muted mb-1" id="monthlySummaryTitle">Monthly Summary</h2>
+        <p class="small text-muted mb-3">Income, money out, and balance for each month. The pie shows how that month's money out splits between expenses and savings.</p>
+        <div class="row g-3 mb-4" id="monthTileGrid" aria-labelledby="monthlySummaryTitle">
+          <div class="col-12 text-center text-muted">Loading months...</div>
+        </div>
+      </div>
     </div>
   </main>
 

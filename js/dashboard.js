@@ -13,9 +13,9 @@
 //   2. Savings tab: the financial goals widget, plus monthly bars
 //      stacked by category for expense_type 'saving' rows and a
 //      cumulative "total saved to date" line.
-//   3. A grid of small tiles - one per month, shown below both
-//      tabs - each showing that month's income/expenses/balance.
-//      "Out" includes savings: savings always reduce Balance.
+//   3. Monthly Summary tab: one tile per month showing that month's
+//      income/out/balance plus a pie of the expense vs. savings share
+//      of money out. "Out" includes savings: savings always reduce Balance.
 //
 // Charts are created the first time their tab is shown, because
 // Chart.js cannot size a canvas inside a hidden (display:none) tab.
@@ -174,28 +174,125 @@ function getBalanceColorClass(income, totalExpenses) {
   return "bg-success";
 }
 
-// Builds one small tile <div> for a month's summary.
-function buildMonthTile(monthInfo, income, totalExpenses) {
+// Reads a CSS custom property from the current theme (e.g. "--color-blue").
+function getThemeColor(variableName, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  return value || fallback;
+}
+
+// Returns the color at `alpha` opacity. Accepts "#rgb", "#rrggbb" or "#rrggbbaa".
+function withAlpha(hexColor, alpha) {
+  let hex = String(hexColor).replace("#", "");
+  if (hex.length === 3) hex = hex.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-f]{6,8}$/i.test(hex)) return hexColor;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Soft palette built from the app's own theme colors (teal accent,
+// green, gray) at stepped opacities, so stacked bars and pies sit
+// comfortably on the card surface instead of clashing with it.
+function getThemePalette() {
+  const blue = getThemeColor("--color-blue", "#00b7c2");
+  const green = getThemeColor("--color-green", "#a7d82e");
+  const gray = getThemeColor("--color-gray", "#8e8e93");
+  return [
+    withAlpha(blue, 0.85),
+    withAlpha(green, 0.7),
+    withAlpha(gray, 0.75),
+    withAlpha(blue, 0.5),
+    withAlpha(green, 0.4),
+    withAlpha(gray, 0.45),
+    withAlpha(blue, 0.3),
+    withAlpha(green, 0.25),
+  ];
+}
+
+// Splits a month's money out into whole-number percentages that always
+// add up to 100. Returns null when nothing went out that month.
+function getOutflowSplit(spendingTotal, savingTotal) {
+  const totalOut = spendingTotal + savingTotal;
+  if (totalOut <= 0) return null;
+  const savingPercent = Math.round((savingTotal / totalOut) * 100);
+  return { expensePercent: 100 - savingPercent, savingPercent };
+}
+
+// Builds one tile <div> for a month's summary, with a pie chart canvas
+// for the expense vs. savings split of that month's money out.
+function buildMonthTile(monthInfo, income, spendingTotal, savingTotal) {
+  const totalExpenses = spendingTotal + savingTotal;
   const balance = income - totalExpenses;
   const colorClass = getBalanceColorClass(income, totalExpenses);
+  const split = getOutflowSplit(spendingTotal, savingTotal);
+  const canvasId = `monthPie-${monthInfo.key}`;
 
   const col = document.createElement("div");
-  col.className = "col-6 col-sm-4 col-md-3 col-lg-2";
+  col.className = "col-12 col-sm-6 col-lg-4 col-xl-3";
+
+  const chartMarkup = split
+    ? `<div class="dashboard-month-pie">
+         <canvas id="${canvasId}" role="img"
+           aria-label="${monthInfo.label}: expenses ${split.expensePercent}%, savings ${split.savingPercent}% of money out"></canvas>
+       </div>
+       <div class="dashboard-month-legend small">
+         <span><span class="dashboard-legend-swatch dashboard-legend-expense" aria-hidden="true"></span>Expenses ${split.expensePercent}%</span>
+         <span><span class="dashboard-legend-swatch dashboard-legend-saving" aria-hidden="true"></span>Savings ${split.savingPercent}%</span>
+       </div>`
+    : `<div class="dashboard-month-empty small text-muted">No expenses or savings this month.</div>`;
 
   col.innerHTML = `
-    <div class="card h-100 shadow-sm">
-      <div class="card-body p-2 text-center">
+    <div class="card h-100 shadow-sm dashboard-month-card">
+      <div class="card-body p-3 text-center">
         <div class="small text-muted mb-1">${monthInfo.label}</div>
         <div class="small">In: ${window.formatCurrency(income)}</div>
-        <div class="small mb-1">Out: ${window.formatCurrency(totalExpenses)}</div>
-        <div class="rounded p-1 small ${colorClass} text-white">
+        <div class="small mb-2">Out: ${window.formatCurrency(totalExpenses)}</div>
+        ${chartMarkup}
+        <div class="rounded p-1 small mt-2 ${colorClass} text-white">
           ${window.formatCurrency(balance)}
         </div>
       </div>
     </div>
   `;
 
-  return col;
+  return { col, canvasId: split ? canvasId : null };
+}
+
+// Draws one month tile's pie: expense vs. savings share of money out.
+function renderMonthPie(canvasId, spendingTotal, savingTotal) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas || typeof Chart === "undefined") return;
+
+  const expenseColor = withAlpha(getThemeColor("--color-gray", "#8e8e93"), 0.55);
+  const savingColor = withAlpha(getThemeColor("--color-blue", "#00b7c2"), 0.85);
+  const total = spendingTotal + savingTotal;
+
+  new Chart(canvas, {
+    type: "pie",
+    data: {
+      labels: ["Expenses", "Savings"],
+      datasets: [
+        {
+          data: [spendingTotal, savingTotal],
+          backgroundColor: [expenseColor, savingColor],
+          borderColor: getThemeColor("--surface", "#2c2c2e"),
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (context) =>
+              `${context.label}: ${window.formatCurrency(context.parsed)} (${Math.round((context.parsed / total) * 100)}%)`,
+          },
+        },
+      },
+    },
+  });
 }
 
 // Splits expense rows into genuine spending and savings. Anything
@@ -287,12 +384,15 @@ function renderSavingsTrendChart(months, savingTotalsByMonth, categoryNames) {
   if (!toggleChartEmptyState(canvas, "savingsChartEmpty", categoryNames.length > 0)) return;
 
   const labels = months.map((m) => m.label);
+  const palette = getThemePalette();
+  const lineColor = getThemeColor("--text-muted", "#8e8e93");
 
   const barDatasets = categoryNames.map((categoryName, index) => ({
     type: "bar",
     label: categoryName,
     data: months.map((m) => (savingTotalsByMonth[m.key] || {})[categoryName] || 0),
-    backgroundColor: CATEGORY_LINE_COLORS[index % CATEGORY_LINE_COLORS.length],
+    backgroundColor: palette[index % palette.length],
+    borderRadius: 4,
     stack: "savings",
     yAxisID: "y",
     order: 2,
@@ -302,8 +402,8 @@ function renderSavingsTrendChart(months, savingTotalsByMonth, categoryNames) {
     type: "line",
     label: "Total saved to date",
     data: buildCumulativeSeries(months, savingTotalsByMonth),
-    borderColor: "#8e8e93",
-    backgroundColor: "#8e8e93",
+    borderColor: lineColor,
+    backgroundColor: lineColor,
     borderDash: [6, 4],
     tension: 0.25,
     fill: false,
@@ -342,7 +442,13 @@ function renderSavingsTrendChart(months, savingTotalsByMonth, categoryNames) {
 }
 
 // Draws each tab's chart the first time that tab becomes visible, and
-// keeps the URL hash (#spending / #savings) in sync for deep links.
+// keeps the URL hash (#spending / #savings / #summary) in sync for deep links.
+const DASHBOARD_TAB_HASHES = {
+  "spending-tab": "#spending",
+  "savings-tab": "#savings",
+  "summary-tab": "#summary",
+};
+
 function setupDashboardTabs(chartRenderers) {
   const rendered = {};
   const renderFor = (tabId) => {
@@ -355,8 +461,8 @@ function setupDashboardTabs(chartRenderers) {
   tabButtons.forEach((button) => {
     button.addEventListener("shown.bs.tab", () => {
       renderFor(button.id);
-      const hash = button.id === "savings-tab" ? "#savings" : "#spending";
-      if (window.location.hash !== hash) history.replaceState(null, "", hash);
+      const hash = DASHBOARD_TAB_HASHES[button.id];
+      if (hash && window.location.hash !== hash) history.replaceState(null, "", hash);
     });
   });
 
@@ -366,12 +472,16 @@ function setupDashboardTabs(chartRenderers) {
   if (activeButton) renderFor(activeButton.id);
 }
 
-// Opens the tab named in the URL hash (#savings) as early as possible,
-// before the data has loaded.
+// Opens the tab named in the URL hash (#savings / #summary) as early as
+// possible, before the data has loaded.
 function openTabFromHash() {
-  if (window.location.hash !== "#savings" || typeof bootstrap === "undefined") return;
-  const savingsButton = document.getElementById("savings-tab");
-  if (savingsButton) bootstrap.Tab.getOrCreateInstance(savingsButton).show();
+  if (typeof bootstrap === "undefined") return;
+  const tabId = Object.keys(DASHBOARD_TAB_HASHES).find(
+    (id) => DASHBOARD_TAB_HASHES[id] === window.location.hash
+  );
+  if (!tabId || tabId === "spending-tab") return;
+  const button = document.getElementById(tabId);
+  if (button) bootstrap.Tab.getOrCreateInstance(button).show();
 }
 
 async function loadDashboard() {
@@ -410,34 +520,36 @@ async function loadDashboard() {
       incomeByMonth[key] = Number(row.amount);
     });
 
-    // Monthly tile "Out" totals include every expense row - spending
-    // and savings alike - because savings always reduce Balance.
-    const totalExpensesByMonth = {};
-    expenses.forEach((expense) => {
-      const key = getMonthKey(new Date(`${expense.budget_month}T00:00:00`));
-      totalExpensesByMonth[key] = (totalExpensesByMonth[key] || 0) + Number(expense.amount);
-    });
-
-    // Charts: spending and savings are bucketed separately.
+    // Spending and savings are bucketed separately for the charts and
+    // the summary tiles' pie charts.
     const { spending, saving } = splitExpensesByType(expenses);
     const spendingTotals = buildCategoryTotalsByMonth(spending);
     const savingTotals = buildCategoryTotalsByMonth(saving);
+    const sumMonth = (totalsByMonth, key) =>
+      Object.values(totalsByMonth[key] || {}).reduce((sum, value) => sum + value, 0);
+
+    // Monthly Summary tab: tiles are built now (most recent month first);
+    // their pies are drawn when the tab is first shown. Tile "Out" is
+    // spending + savings, because savings always reduce Balance.
+    const tileGrid = document.getElementById("monthTileGrid");
+    tileGrid.innerHTML = "";
+    const pendingPies = [];
+
+    [...months].reverse().forEach((monthInfo) => {
+      const income = incomeByMonth[monthInfo.key] || 0;
+      const spendingTotal = sumMonth(spendingTotals.totalsByMonth, monthInfo.key);
+      const savingTotal = sumMonth(savingTotals.totalsByMonth, monthInfo.key);
+      const { col, canvasId } = buildMonthTile(monthInfo, income, spendingTotal, savingTotal);
+      tileGrid.appendChild(col);
+      if (canvasId) pendingPies.push(() => renderMonthPie(canvasId, spendingTotal, savingTotal));
+    });
 
     setupDashboardTabs({
       "spending-tab": () =>
         renderCategoryTrendChart(months, spendingTotals.totalsByMonth, spendingTotals.categoryNames),
       "savings-tab": () =>
         renderSavingsTrendChart(months, savingTotals.totalsByMonth, savingTotals.categoryNames),
-    });
-
-    const tileGrid = document.getElementById("monthTileGrid");
-    tileGrid.innerHTML = "";
-
-    // Render most recent month first so it's visible at a glance.
-    [...months].reverse().forEach((monthInfo) => {
-      const income = incomeByMonth[monthInfo.key] || 0;
-      const totalExpenses = totalExpensesByMonth[monthInfo.key] || 0;
-      tileGrid.appendChild(buildMonthTile(monthInfo, income, totalExpenses));
+      "summary-tab": () => pendingPies.forEach((renderPie) => renderPie()),
     });
   } catch (err) {
     showDashboardAlert("Failed to load dashboard data.");

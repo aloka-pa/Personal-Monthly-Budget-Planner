@@ -45,3 +45,15 @@ added.
 - Charts in a hidden tab render at 0 width in Chart.js, so each chart is created the first
   time its tab is shown (`shown.bs.tab`).
 - Savings chart design (stacked bars + cumulative line) was Claude's call.
+
+## Revision (same day): Monthly Summary tab + theme colors
+
+- Monthly Summary tiles move out of the Spending/Savings tabs into a third tab,
+  **Monthly Summary** (`#summary`).
+- Each tile gets a pie chart: expense % vs. savings % **of that month's money out**
+  (spending + savings). Percentages are whole numbers that always sum to 100. Months with
+  no money out show a short message instead of a pie. (Share-of-money-out rather than
+  share-of-income was Claude's call, since the user asked for exactly two slices.)
+- Savings bars and pies use soft theme colors (`--color-blue`, `--color-green`,
+  `--color-gray` at stepped opacities) instead of the bright category palette. The
+  Spending line chart keeps its existing palette.
