@@ -1,17 +1,24 @@
 // ============================================================
-// dashboard.js - full history dashboard: category spending line
-// chart + a compact monthly summary tile grid.
+// dashboard.js - full history dashboard with Spending / Savings
+// tabs + a compact monthly summary tile grid.
 // ============================================================
 //
 // Instead of only comparing this month vs last month, this fetches
 // ALL of the user's incomes + expenses once, figures out the full
 // month range (from their earliest recorded month through the
 // current month), and builds:
-//   1. A line chart with one line per category, showing that
-//      category's total spend for every month in the range.
-//   2. A grid of small tiles - one per month - each showing that
-//      month's income/expenses/balance (color-coded same as the
-//      main app page).
+//   1. Spending tab: a line chart with one line per category,
+//      showing that category's total spend (expense_type 'expense'
+//      rows only) for every month in the range.
+//   2. Savings tab: the financial goals widget, plus monthly bars
+//      stacked by category for expense_type 'saving' rows and a
+//      cumulative "total saved to date" line.
+//   3. A grid of small tiles - one per month, shown below both
+//      tabs - each showing that month's income/expenses/balance.
+//      "Out" includes savings: savings always reduce Balance.
+//
+// Charts are created the first time their tab is shown, because
+// Chart.js cannot size a canvas inside a hidden (display:none) tab.
 //
 // Both automatically "grow" over time: as soon as new months have
 // data, they show up here without any code changes.
@@ -92,7 +99,7 @@ async function fetchAllIncomes(userId) {
 async function fetchAllExpenses(userId) {
   const { data, error } = await supabaseClient
     .from("expenses")
-    .select("amount, expense_datetime, budget_month, categories(name)")
+    .select("amount, expense_datetime, budget_month, expense_type, categories(name)")
     .eq("user_id", userId)
     .order("expense_datetime", { ascending: true });
 
@@ -191,10 +198,61 @@ function buildMonthTile(monthInfo, income, totalExpenses) {
   return col;
 }
 
+// Splits expense rows into genuine spending and savings. Anything
+// other than the literal 'saving' (incl. null/legacy rows) is spending,
+// matching expenses.js's normalizeExpenseType().
+function splitExpensesByType(expenses) {
+  const spending = [];
+  const saving = [];
+  expenses.forEach((expense) => {
+    if (expense.expense_type === "saving") saving.push(expense);
+    else spending.push(expense);
+  });
+  return { spending, saving };
+}
+
+// Buckets expense rows by budget month and category name.
+// Returns { totalsByMonth: { "YYYY-MM": { [category]: amount } }, categoryNames: sorted string[] }.
+function buildCategoryTotalsByMonth(expenses) {
+  const totalsByMonth = {};
+  const categoryNamesSet = new Set();
+
+  expenses.forEach((expense) => {
+    const key = getMonthKey(new Date(`${expense.budget_month}T00:00:00`));
+    const categoryName = expense.categories ? expense.categories.name : "Uncategorized";
+
+    if (!totalsByMonth[key]) totalsByMonth[key] = {};
+    totalsByMonth[key][categoryName] = (totalsByMonth[key][categoryName] || 0) + Number(expense.amount);
+    categoryNamesSet.add(categoryName);
+  });
+
+  return { totalsByMonth, categoryNames: Array.from(categoryNamesSet).sort() };
+}
+
+// Running total of all categories across the month range, one value per month.
+function buildCumulativeSeries(months, totalsByMonth) {
+  let runningTotal = 0;
+  return months.map((m) => {
+    const monthTotals = totalsByMonth[m.key] || {};
+    runningTotal += Object.values(monthTotals).reduce((sum, value) => sum + value, 0);
+    return runningTotal;
+  });
+}
+
+// Shows the empty-state message instead of the canvas when there's no data.
+// Returns true when the chart should be drawn.
+function toggleChartEmptyState(canvas, emptyMessageId, hasData) {
+  const emptyMessage = document.getElementById(emptyMessageId);
+  if (emptyMessage) emptyMessage.classList.toggle("d-none", hasData);
+  canvas.classList.toggle("d-none", !hasData);
+  return hasData;
+}
+
 // Renders the line chart: one line per category, x-axis = months.
 function renderCategoryTrendChart(months, categoryTotalsByMonth, categoryNames) {
   const canvas = document.getElementById("categoryTrendChart");
   if (!canvas || typeof Chart === "undefined") return;
+  if (!toggleChartEmptyState(canvas, "spendingChartEmpty", categoryNames.length > 0)) return;
 
   const labels = months.map((m) => m.label);
 
@@ -219,6 +277,101 @@ function renderCategoryTrendChart(months, categoryTotalsByMonth, categoryNames) 
       },
     },
   });
+}
+
+// Renders the savings chart: monthly bars stacked by category, plus a
+// cumulative "Total saved to date" line on its own right-hand axis.
+function renderSavingsTrendChart(months, savingTotalsByMonth, categoryNames) {
+  const canvas = document.getElementById("savingsTrendChart");
+  if (!canvas || typeof Chart === "undefined") return;
+  if (!toggleChartEmptyState(canvas, "savingsChartEmpty", categoryNames.length > 0)) return;
+
+  const labels = months.map((m) => m.label);
+
+  const barDatasets = categoryNames.map((categoryName, index) => ({
+    type: "bar",
+    label: categoryName,
+    data: months.map((m) => (savingTotalsByMonth[m.key] || {})[categoryName] || 0),
+    backgroundColor: CATEGORY_LINE_COLORS[index % CATEGORY_LINE_COLORS.length],
+    stack: "savings",
+    yAxisID: "y",
+    order: 2,
+  }));
+
+  const cumulativeDataset = {
+    type: "line",
+    label: "Total saved to date",
+    data: buildCumulativeSeries(months, savingTotalsByMonth),
+    borderColor: "#8e8e93",
+    backgroundColor: "#8e8e93",
+    borderDash: [6, 4],
+    tension: 0.25,
+    fill: false,
+    yAxisID: "yCumulative",
+    order: 1,
+  };
+
+  new Chart(canvas, {
+    data: { labels, datasets: [...barDatasets, cumulativeDataset] },
+    options: {
+      responsive: true,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${window.formatCurrency(context.parsed.y)}`,
+          },
+        },
+      },
+      scales: {
+        x: { stacked: true },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: { display: true, text: "Saved per month" },
+        },
+        yCumulative: {
+          position: "right",
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: "Total saved" },
+        },
+      },
+    },
+  });
+}
+
+// Draws each tab's chart the first time that tab becomes visible, and
+// keeps the URL hash (#spending / #savings) in sync for deep links.
+function setupDashboardTabs(chartRenderers) {
+  const rendered = {};
+  const renderFor = (tabId) => {
+    if (rendered[tabId] || !chartRenderers[tabId]) return;
+    rendered[tabId] = true;
+    chartRenderers[tabId]();
+  };
+
+  const tabButtons = document.querySelectorAll('#dashboardTabs [data-bs-toggle="tab"]');
+  tabButtons.forEach((button) => {
+    button.addEventListener("shown.bs.tab", () => {
+      renderFor(button.id);
+      const hash = button.id === "savings-tab" ? "#savings" : "#spending";
+      if (window.location.hash !== hash) history.replaceState(null, "", hash);
+    });
+  });
+
+  // Draw whichever tab is visible now (the user may have switched tabs
+  // while data was still loading, before these listeners existed).
+  const activeButton = document.querySelector("#dashboardTabs .nav-link.active");
+  if (activeButton) renderFor(activeButton.id);
+}
+
+// Opens the tab named in the URL hash (#savings) as early as possible,
+// before the data has loaded.
+function openTabFromHash() {
+  if (window.location.hash !== "#savings" || typeof bootstrap === "undefined") return;
+  const savingsButton = document.getElementById("savings-tab");
+  if (savingsButton) bootstrap.Tab.getOrCreateInstance(savingsButton).show();
 }
 
 async function loadDashboard() {
@@ -257,28 +410,25 @@ async function loadDashboard() {
       incomeByMonth[key] = Number(row.amount);
     });
 
-    // Bucket expenses by month key, both totals and per-category.
+    // Monthly tile "Out" totals include every expense row - spending
+    // and savings alike - because savings always reduce Balance.
     const totalExpensesByMonth = {};
-    const categoryTotalsByMonth = {};
-    const categoryNamesSet = new Set();
-
     expenses.forEach((expense) => {
       const key = getMonthKey(new Date(`${expense.budget_month}T00:00:00`));
-      const amount = Number(expense.amount);
-      const categoryName = expense.categories ? expense.categories.name : "Uncategorized";
-
-      totalExpensesByMonth[key] = (totalExpensesByMonth[key] || 0) + amount;
-
-      if (!categoryTotalsByMonth[key]) categoryTotalsByMonth[key] = {};
-      categoryTotalsByMonth[key][categoryName] =
-        (categoryTotalsByMonth[key][categoryName] || 0) + amount;
-
-      categoryNamesSet.add(categoryName);
+      totalExpensesByMonth[key] = (totalExpensesByMonth[key] || 0) + Number(expense.amount);
     });
 
-    const categoryNames = Array.from(categoryNamesSet).sort();
+    // Charts: spending and savings are bucketed separately.
+    const { spending, saving } = splitExpensesByType(expenses);
+    const spendingTotals = buildCategoryTotalsByMonth(spending);
+    const savingTotals = buildCategoryTotalsByMonth(saving);
 
-    renderCategoryTrendChart(months, categoryTotalsByMonth, categoryNames);
+    setupDashboardTabs({
+      "spending-tab": () =>
+        renderCategoryTrendChart(months, spendingTotals.totalsByMonth, spendingTotals.categoryNames),
+      "savings-tab": () =>
+        renderSavingsTrendChart(months, savingTotals.totalsByMonth, savingTotals.categoryNames),
+    });
 
     const tileGrid = document.getElementById("monthTileGrid");
     tileGrid.innerHTML = "";
@@ -307,5 +457,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Only run on dashboard.html.
   if (!document.getElementById("categoryTrendChart")) return;
 
+  openTabFromHash();
   loadDashboard();
 });

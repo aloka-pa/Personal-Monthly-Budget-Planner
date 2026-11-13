@@ -25,7 +25,7 @@
   <link href="css/styles.css" rel="stylesheet" />
   <link href="css/header-utilities.css" rel="stylesheet" />
   <link href="css/pages/financial-goals.css" rel="stylesheet" />
-  <link href="css/pages/financial-health-score.css" rel="stylesheet" />
+  <link href="css/pages/dashboard.css" rel="stylesheet" />
 </head>
 <body class="app-layout">
 
@@ -41,77 +41,62 @@
 
     <div id="dashboardAlert" class="alert d-none" role="alert"></div>
 
-    <section class="card shadow-sm mb-4 health-score-card" aria-labelledby="healthScoreTitle">
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div>
-            <h2 class="h6 mb-1" id="healthScoreTitle">
-              Financial Health Score
-              <i
-                class="bi bi-question-circle-fill"
-                data-bs-toggle="tooltip"
-                data-bs-placement="top"
-                title="A score from 0-100 combining how well you budgeted, saved, kept spending steady, and progressed on goals last month."
-                tabindex="0"
-                aria-label="What is the Financial Health Score?"
-              ></i>
-            </h2>
-            <p class="small text-muted mb-0" id="healthScoreMonthLabel">Latest completed month</p>
+    <ul class="nav nav-tabs dashboard-tabs mb-4" id="dashboardTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="spending-tab" data-bs-toggle="tab" data-bs-target="#spendingPane" type="button" role="tab" aria-controls="spendingPane" aria-selected="true">
+          <i class="bi bi-cart3" aria-hidden="true"></i> Spending
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="savings-tab" data-bs-toggle="tab" data-bs-target="#savingsPane" type="button" role="tab" aria-controls="savingsPane" aria-selected="false">
+          <i class="bi bi-piggy-bank" aria-hidden="true"></i> Savings
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="dashboardTabContent">
+      <!-- SPENDING TAB -->
+      <div class="tab-pane fade show active" id="spendingPane" role="tabpanel" aria-labelledby="spending-tab" tabindex="0">
+        <section class="card shadow-sm mb-4" aria-labelledby="spendingChartTitle">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-1" id="spendingChartTitle">Spending by Category Over Time</h2>
+            <p class="small text-muted mb-3">Expenses marked as <strong>Expense</strong>. Savings are shown on the Savings tab.</p>
+            <p class="small text-muted mb-0 d-none" id="spendingChartEmpty">No spending recorded yet.</p>
+            <canvas id="categoryTrendChart" height="100" role="img" aria-label="Line chart of monthly spending per category"></canvas>
           </div>
-        </div>
+        </section>
+      </div>
 
-        <div id="healthScoreLoading" class="small text-muted">Calculating your financial health score...</div>
-        <div id="healthScoreError" class="alert alert-danger d-none" role="alert"></div>
-
-        <div id="healthScoreContent" class="d-none">
-          <div class="row g-3 align-items-start mb-3">
-            <div class="col-md-4">
-              <div class="health-score-overall">
-                <strong class="h2 mb-0" id="healthScoreOverallValue">--</strong>
-                <span class="health-score-label" id="healthScoreOverallLabel"></span>
+      <!-- SAVINGS TAB -->
+      <div class="tab-pane fade" id="savingsPane" role="tabpanel" aria-labelledby="savings-tab" tabindex="0">
+        <section class="card shadow-sm mb-4" aria-labelledby="goalsWidgetTitle">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div><h2 class="h6 mb-1" id="goalsWidgetTitle">Financial Goals</h2><p class="small text-muted mb-0">Overall savings progress</p></div>
+              <a class="btn btn-sm btn-outline-primary" href="financial-goals.html">View goals</a>
+            </div>
+            <div id="dashboardGoalsLoading" class="small text-muted">Loading goals...</div>
+            <div id="dashboardGoalsContent" class="d-none">
+              <div class="row g-3 align-items-center mb-3">
+                <div class="col-md-4"><div class="goals-overall-progress"><strong class="h3 mb-0" id="dashboardGoalsPercent">0%</strong><span class="small text-muted">complete</span></div></div>
+                <div class="col-md-8"><div class="progress goal-progress mb-2"><div class="progress-bar" id="dashboardGoalsBar" style="width:0%"></div></div><div class="d-flex justify-content-between small"><span>Saved: <strong id="dashboardGoalsSaved">0.00</strong></span><span>Target: <strong id="dashboardGoalsTarget">0.00</strong></span></div></div>
               </div>
-              <div class="health-score-delta" id="healthScoreDelta"></div>
-              <p class="small text-muted mb-0 d-none" id="healthScoreInsufficientNote">
-                Not enough data yet for an overall score. Showing available components below.
-              </p>
-            </div>
-            <div class="col-md-8">
-              <div class="row g-2" id="healthScoreComponents"></div>
             </div>
           </div>
-          <div class="health-score-explanation" id="healthScoreExplanation"></div>
-          <a class="health-score-methodology-link" href="financial-health-guide.html" target="_blank" rel="noopener">
-            Learn how your score is calculated <i class="bi bi-arrow-right" aria-hidden="true"></i>
-          </a>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <section class="card shadow-sm mb-4" aria-labelledby="goalsWidgetTitle">
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-          <div><h2 class="h6 mb-1" id="goalsWidgetTitle">Financial Goals</h2><p class="small text-muted mb-0">Overall savings progress</p></div>
-          <a class="btn btn-sm btn-outline-primary" href="financial-goals.html">View goals</a>
-        </div>
-        <div id="dashboardGoalsLoading" class="small text-muted">Loading goals...</div>
-        <div id="dashboardGoalsContent" class="d-none">
-          <div class="row g-3 align-items-center mb-3">
-            <div class="col-md-4"><div class="goals-overall-progress"><strong class="h3 mb-0" id="dashboardGoalsPercent">0%</strong><span class="small text-muted">complete</span></div></div>
-            <div class="col-md-8"><div class="progress goal-progress mb-2"><div class="progress-bar" id="dashboardGoalsBar" style="width:0%"></div></div><div class="d-flex justify-content-between small"><span>Saved: <strong id="dashboardGoalsSaved">0.00</strong></span><span>Target: <strong id="dashboardGoalsTarget">0.00</strong></span></div></div>
+        <section class="card shadow-sm mb-4" aria-labelledby="savingsChartTitle">
+          <div class="card-body">
+            <h2 class="h6 text-muted mb-1" id="savingsChartTitle">Savings by Category Over Time</h2>
+            <p class="small text-muted mb-3">Expenses marked as <strong>Saving</strong>. Bars show each month's savings by category; the line shows your total saved to date.</p>
+            <p class="small text-muted mb-0 d-none" id="savingsChartEmpty">No savings recorded yet. Mark an expense as <strong>Saving</strong> when you add it to see it here.</p>
+            <canvas id="savingsTrendChart" height="100" role="img" aria-label="Bar chart of monthly savings per category with a cumulative total line"></canvas>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CATEGORY SPENDING OVER TIME (LINE CHART) -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h2 class="h6 text-muted mb-3">Spending by Category Over Time</h2>
-        <canvas id="categoryTrendChart" height="100"></canvas>
+        </section>
       </div>
     </div>
 
-    <!-- MONTHLY TILES -->
+    <!-- MONTHLY TILES (shown on both tabs) -->
     <h2 class="h6 text-muted mb-3">Monthly Summary</h2>
     <div class="row g-2 mb-4" id="monthTileGrid">
       <div class="col-12 text-center text-muted">Loading months...</div>
@@ -134,7 +119,6 @@
   <script src="js/auth.js"></script>
   <script src="js/currency.js"></script>
   <script src="js/dashboard.js"></script>
-  <script src="js/financial-health-score.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/layout.js"></script>
   <script src="js/header-utilities.js"></script>

@@ -1,0 +1,41 @@
+/* Dashboard page: Spending / Savings tabs */
+
+.dashboard-tabs {
+  border-bottom-color: var(--border);
+}
+
+.dashboard-tabs .nav-link {
+  color: var(--text-muted);
+  font-weight: 600;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dashboard-tabs .nav-link:hover,
+.dashboard-tabs .nav-link:focus-visible {
+  color: var(--text);
+  border-color: var(--border) var(--border) transparent;
+}
+
+.dashboard-tabs .nav-link.active {
+  color: var(--color-blue);
+  background-color: var(--surface);
+  border-color: var(--border) var(--border) var(--surface);
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-tabs {
+    flex-wrap: nowrap;
+  }
+
+  .dashboard-tabs .nav-item {
+    flex: 1 1 0;
+  }
+
+  .dashboard-tabs .nav-link {
+    width: 100%;
+    justify-content: center;
+  }
+}
