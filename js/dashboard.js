@@ -163,17 +163,6 @@ function showDashboardAlert(message, type = "danger") {
   window.autoHideAlert(alertBox);
 }
 
-// Same color-coding rule used everywhere else in the app:
-// < 70% spent -> green, 70-90% -> yellow, > 90% or negative -> red.
-function getBalanceColorClass(income, totalExpenses) {
-  const percentSpent = income > 0 ? (totalExpenses / income) * 100 : totalExpenses > 0 ? 100 : 0;
-  const balance = income - totalExpenses;
-
-  if (balance < 0 || percentSpent > 90) return "bg-danger";
-  if (percentSpent >= 70) return "bg-warning";
-  return "bg-success";
-}
-
 // Reads a CSS custom property from the current theme (e.g. "--color-blue").
 function getThemeColor(variableName, fallback) {
   const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
@@ -222,7 +211,6 @@ function getOutflowSplit(spendingTotal, savingTotal) {
 function buildMonthTile(monthInfo, income, spendingTotal, savingTotal) {
   const totalExpenses = spendingTotal + savingTotal;
   const balance = income - totalExpenses;
-  const colorClass = getBalanceColorClass(income, totalExpenses);
   const split = getOutflowSplit(spendingTotal, savingTotal);
   const canvasId = `monthPie-${monthInfo.key}`;
 
@@ -245,11 +233,9 @@ function buildMonthTile(monthInfo, income, spendingTotal, savingTotal) {
       <div class="card-body p-3 text-center">
         <div class="small text-muted mb-1">${monthInfo.label}</div>
         <div class="small">In: ${window.formatCurrency(income)}</div>
-        <div class="small mb-2">Out: ${window.formatCurrency(totalExpenses)}</div>
+        <div class="small">Out: ${window.formatCurrency(totalExpenses)}</div>
+        <div class="small mb-2">Balance: ${window.formatCurrency(balance)}</div>
         ${chartMarkup}
-        <div class="rounded p-1 small mt-2 ${colorClass} text-white">
-          ${window.formatCurrency(balance)}
-        </div>
       </div>
     </div>
   `;
